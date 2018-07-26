@@ -14,10 +14,6 @@
     <packaging>jar</packaging>
     <name>Feign Reactive Core</name>
 
-    <properties>
-        <spring.framework.version>5.0.5.RELEASE</spring.framework.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.projectreactor</groupId>
