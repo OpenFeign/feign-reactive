@@ -23,8 +23,8 @@ import feign.reactive.testcase.IcecreamServiceApi;
  */
 public class CompressionTest extends feign.reactive.CompressionTest {
 
-	@Override
-	protected ReactiveFeign.Builder<IcecreamServiceApi> builder(ReactiveOptions options) {
-		return RestTemplateFakeReactiveFeign.builder(options);
-	}
+  @Override
+  protected ReactiveFeign.Builder<IcecreamServiceApi> builder(ReactiveOptions options) {
+    return RestTemplateFakeReactiveFeign.builder(options);
+  }
 }

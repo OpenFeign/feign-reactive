@@ -14,7 +14,6 @@
 package feign.reactive.client;
 
 import feign.MethodMetadata;
-
 import java.util.function.Function;
 
 /**

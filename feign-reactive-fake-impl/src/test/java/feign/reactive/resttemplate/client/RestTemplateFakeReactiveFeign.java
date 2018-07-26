@@ -27,29 +27,30 @@ import org.springframework.web.client.RestTemplate;
  */
 public class RestTemplateFakeReactiveFeign {
 
-	public static <T> ReactiveFeign.Builder<T> builder() {
-		return builder(new RestTemplate(), false);
-	}
+  public static <T> ReactiveFeign.Builder<T> builder() {
+    return builder(new RestTemplate(), false);
+  }
 
-	public static <T> ReactiveFeign.Builder<T> builder(ReactiveOptions options) {
-		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(
-				HttpClientBuilder.create().build());
-		if(options.getConnectTimeoutMillis() != null) {
-			requestFactory.setConnectTimeout(options.getConnectTimeoutMillis());
-		}
-		if(options.getReadTimeoutMillis() != null){
-			requestFactory.setReadTimeout(options.getReadTimeoutMillis());
-		}
-		return builder(new RestTemplate(requestFactory),
-				options.isTryUseCompression() != null && options.isTryUseCompression());
-	}
+  public static <T> ReactiveFeign.Builder<T> builder(ReactiveOptions options) {
+    HttpComponentsClientHttpRequestFactory requestFactory =
+        new HttpComponentsClientHttpRequestFactory(
+            HttpClientBuilder.create().build());
+    if (options.getConnectTimeoutMillis() != null) {
+      requestFactory.setConnectTimeout(options.getConnectTimeoutMillis());
+    }
+    if (options.getReadTimeoutMillis() != null) {
+      requestFactory.setReadTimeout(options.getReadTimeoutMillis());
+    }
+    return builder(new RestTemplate(requestFactory),
+        options.isTryUseCompression() != null && options.isTryUseCompression());
+  }
 
-	public static <T> ReactiveFeign.Builder<T> builder(RestTemplate restTemplate, boolean acceptGzip) {
-		return new ReactiveFeign.Builder<>(
-				methodMetadata -> (ReactiveHttpClient<T>) new RestTemplateFakeReactiveHttpClient<>(methodMetadata, restTemplate, acceptGzip)
-		);
-	}
+  public static <T> ReactiveFeign.Builder<T> builder(RestTemplate restTemplate,
+                                                     boolean acceptGzip) {
+    return new ReactiveFeign.Builder<>(
+        methodMetadata -> (ReactiveHttpClient<T>) new RestTemplateFakeReactiveHttpClient<>(
+            methodMetadata, restTemplate, acceptGzip));
+  }
 }
-
 
 

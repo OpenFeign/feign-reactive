@@ -21,7 +21,7 @@ import org.reactivestreams.Publisher;
  */
 public interface ReactiveMethodHandler extends InvocationHandlerFactory.MethodHandler {
 
-	@Override
-	Publisher<Object> invoke(final Object[] argv);
+  @Override
+  Publisher<Object> invoke(final Object[] argv);
 
 }

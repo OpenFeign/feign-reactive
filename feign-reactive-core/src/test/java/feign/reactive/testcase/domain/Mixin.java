@@ -17,5 +17,5 @@ package feign.reactive.testcase.domain;
  * Ice cream mix-ins.
  */
 public enum Mixin {
-	COOKIES, MNMS, CHOCOLATE_SIROP, STRAWBERRY_SIROP, NUTS, RAINBOW
+  COOKIES, MNMS, CHOCOLATE_SIROP, STRAWBERRY_SIROP, NUTS, RAINBOW
 }

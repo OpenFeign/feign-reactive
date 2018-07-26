@@ -31,133 +31,133 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
-
 import static feign.Util.resolveLastTypeParameter;
 import static org.springframework.core.ParameterizedTypeReference.forType;
 
-public class RestTemplateFakeReactiveHttpClient<T> implements ReactiveHttpClient<T>{
+public class RestTemplateFakeReactiveHttpClient<T> implements ReactiveHttpClient<T> {
 
-	private final RestTemplate restTemplate;
-	private final boolean acceptGzip;
-	private final Type returnPublisherType;
-	private final ParameterizedTypeReference returnActualType;
+  private final RestTemplate restTemplate;
+  private final boolean acceptGzip;
+  private final Type returnPublisherType;
+  private final ParameterizedTypeReference returnActualType;
 
-	public RestTemplateFakeReactiveHttpClient(MethodMetadata methodMetadata, RestTemplate restTemplate,
-											  boolean acceptGzip) {
-		this.restTemplate = restTemplate;
-		this.acceptGzip = acceptGzip;
+  public RestTemplateFakeReactiveHttpClient(MethodMetadata methodMetadata,
+      RestTemplate restTemplate,
+      boolean acceptGzip) {
+    this.restTemplate = restTemplate;
+    this.acceptGzip = acceptGzip;
 
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.registerModule(new JavaTimeModule());
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
 
-		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-		converter.setObjectMapper(mapper);
-		restTemplate.getMessageConverters().add(0, converter);
+    MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+    converter.setObjectMapper(mapper);
+    restTemplate.getMessageConverters().add(0, converter);
 
 
-		final Type returnType = methodMetadata.returnType();
-		returnPublisherType = ((ParameterizedType) returnType).getRawType();
-		returnActualType = forType(
-				resolveLastTypeParameter(returnType, (Class<?>) returnPublisherType));
-	}
+    final Type returnType = methodMetadata.returnType();
+    returnPublisherType = ((ParameterizedType) returnType).getRawType();
+    returnActualType = forType(
+        resolveLastTypeParameter(returnType, (Class<?>) returnPublisherType));
+  }
 
-	@Override
-	public Mono<ReactiveHttpResponse<T>> executeRequest(ReactiveHttpRequest request) {
+  @Override
+  public Mono<ReactiveHttpResponse<T>> executeRequest(ReactiveHttpRequest request) {
 
-		Object body;
-		if(request.body() instanceof Mono){
-			body = ((Mono) request.body()).block();
-		} else if(request.body() instanceof Flux){
-			body = ((Flux<Object>) request.body()).collectList().block();
-		} else {
-			body = request.body();
-		}
+    Object body;
+    if (request.body() instanceof Mono) {
+      body = ((Mono) request.body()).block();
+    } else if (request.body() instanceof Flux) {
+      body = ((Flux<Object>) request.body()).collectList().block();
+    } else {
+      body = request.body();
+    }
 
-		ParameterizedTypeReference responseType;
-		if(returnPublisherType == Mono.class){
-			responseType = returnActualType;
-		} else {
-			responseType = forType(new ParameterizedType() {
-				@Override
-				public Type[] getActualTypeArguments() {
-					return new Type[]{returnActualType.getType()};
-				}
+    ParameterizedTypeReference responseType;
+    if (returnPublisherType == Mono.class) {
+      responseType = returnActualType;
+    } else {
+      responseType = forType(new ParameterizedType() {
+        @Override
+        public Type[] getActualTypeArguments() {
+          return new Type[] {returnActualType.getType()};
+        }
 
-				@Override
-				public Type getRawType() {
-					return List.class;
-				}
+        @Override
+        public Type getRawType() {
+          return List.class;
+        }
 
-				@Override
-				public Type getOwnerType() {
-					return null;
-				}
-			});
-		}
+        @Override
+        public Type getOwnerType() {
+          return null;
+        }
+      });
+    }
 
-		try {
+    try {
 
-			MultiValueMap<String, String> headers = new LinkedMultiValueMap<>(request.headers());
-			if(acceptGzip){
-				headers.add("Accept-Encoding", "gzip");
-			}
+      MultiValueMap<String, String> headers = new LinkedMultiValueMap<>(request.headers());
+      if (acceptGzip) {
+        headers.add("Accept-Encoding", "gzip");
+      }
 
-			ResponseEntity<T> response = restTemplate.exchange(request.uri().toString(), HttpMethod.valueOf(request.method()),
-					new HttpEntity(body, headers), responseType);
+      ResponseEntity<T> response =
+          restTemplate.exchange(request.uri().toString(), HttpMethod.valueOf(request.method()),
+              new HttpEntity(body, headers), responseType);
 
-			return Mono.just(new ReactiveHttpResponse<T>() {
-				@Override
-				public int status() {
-					return response.getStatusCodeValue();
-				}
+      return Mono.just(new ReactiveHttpResponse<T>() {
+        @Override
+        public int status() {
+          return response.getStatusCodeValue();
+        }
 
-				@Override
-				public Map<String, List<String>> headers() {
-					return response.getHeaders();
-				}
+        @Override
+        public Map<String, List<String>> headers() {
+          return response.getHeaders();
+        }
 
-				@Override
-				public Publisher<T> body() {
-					if(returnPublisherType == Mono.class){
-						return Mono.just(response.getBody());
-					} else {
-						return Flux.fromIterable((List<T>)response.getBody());
-					}
-				}
+        @Override
+        public Publisher<T> body() {
+          if (returnPublisherType == Mono.class) {
+            return Mono.just(response.getBody());
+          } else {
+            return Flux.fromIterable((List<T>) response.getBody());
+          }
+        }
 
-				@Override
-				public Mono<byte[]> bodyData() {
-					return Mono.just(new byte[0]);
-				}
-			});
-		} catch (HttpClientErrorException ex)   {
-			return Mono.just(new ReactiveHttpResponse<T>() {
-				@Override
-				public int status() {
-					return ex.getStatusCode().value();
-				}
+        @Override
+        public Mono<byte[]> bodyData() {
+          return Mono.just(new byte[0]);
+        }
+      });
+    } catch (HttpClientErrorException ex) {
+      return Mono.just(new ReactiveHttpResponse<T>() {
+        @Override
+        public int status() {
+          return ex.getStatusCode().value();
+        }
 
-				@Override
-				public Map<String, List<String>> headers() {
-					return ex.getResponseHeaders();
-				}
+        @Override
+        public Map<String, List<String>> headers() {
+          return ex.getResponseHeaders();
+        }
 
-				@Override
-				public Publisher<T> body() {
-					throw new UnsupportedOperationException();
-				}
+        @Override
+        public Publisher<T> body() {
+          throw new UnsupportedOperationException();
+        }
 
-				@Override
-				public Mono<byte[]> bodyData() {
-					return Mono.just(ex.getResponseBodyAsByteArray());
-				}
-			});
-		}
+        @Override
+        public Mono<byte[]> bodyData() {
+          return Mono.just(ex.getResponseBodyAsByteArray());
+        }
+      });
+    }
 
-	}
+  }
 }

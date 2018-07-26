@@ -22,14 +22,14 @@ import org.junit.Test;
 
 public class ReactivityTest extends feign.reactive.ReactivityTest {
 
-    @Override
-    protected ReactiveFeign.Builder<IcecreamServiceApi> builder() {
-        return RestTemplateFakeReactiveFeign.builder();
-    }
+  @Override
+  protected ReactiveFeign.Builder<IcecreamServiceApi> builder() {
+    return RestTemplateFakeReactiveFeign.builder();
+  }
 
-    @Test(expected = ConditionTimeoutException.class)
-    @Override
-    public void shouldRunReactively() throws JsonProcessingException {
-        super.shouldRunReactively();
-    }
+  @Test(expected = ConditionTimeoutException.class)
+  @Override
+  public void shouldRunReactively() throws JsonProcessingException {
+    super.shouldRunReactively();
+  }
 }

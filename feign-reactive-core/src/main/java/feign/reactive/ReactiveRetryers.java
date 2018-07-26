@@ -14,7 +14,6 @@
 package feign.reactive;
 
 import feign.RetryableException;
-
 import java.util.Date;
 
 /**
@@ -22,32 +21,30 @@ import java.util.Date;
  */
 public class ReactiveRetryers {
 
-	public static ReactiveRetryPolicy retry(int maxRetries) {
-		return (error, attemptNo) -> attemptNo <= maxRetries ? 0 : -1;
-	}
+  public static ReactiveRetryPolicy retry(int maxRetries) {
+    return (error, attemptNo) -> attemptNo <= maxRetries ? 0 : -1;
+  }
 
-	public static ReactiveRetryPolicy retryWithBackoff(int maxRetries, long periodInMs) {
-		return (error, attemptNo) -> {
-			if (attemptNo <= maxRetries) {
-				long delay;
-				Date retryAfter;
-				// "Retry-After" header set
-				if (error instanceof RetryableException
-						&& (retryAfter = ((RetryableException) error)
-								.retryAfter()) != null) {
-					delay = retryAfter.getTime() - System.currentTimeMillis();
-					delay = Math.min(delay, periodInMs);
-					delay = Math.max(delay, 0);
-				}
-				else {
-					delay = periodInMs;
-				}
-				return delay;
-			}
-			else {
-				return -1;
-			}
-		};
-	}
+  public static ReactiveRetryPolicy retryWithBackoff(int maxRetries, long periodInMs) {
+    return (error, attemptNo) -> {
+      if (attemptNo <= maxRetries) {
+        long delay;
+        Date retryAfter;
+        // "Retry-After" header set
+        if (error instanceof RetryableException
+            && (retryAfter = ((RetryableException) error)
+                .retryAfter()) != null) {
+          delay = retryAfter.getTime() - System.currentTimeMillis();
+          delay = Math.min(delay, periodInMs);
+          delay = Math.max(delay, 0);
+        } else {
+          delay = periodInMs;
+        }
+        return delay;
+      } else {
+        return -1;
+      }
+    };
+  }
 
 }

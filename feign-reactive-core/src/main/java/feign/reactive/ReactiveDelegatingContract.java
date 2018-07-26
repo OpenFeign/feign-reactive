@@ -17,11 +17,9 @@ import feign.Contract;
 import feign.MethodMetadata;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
-
 import static feign.Util.checkNotNull;
 
 /**
@@ -31,31 +29,32 @@ import static feign.Util.checkNotNull;
  */
 public class ReactiveDelegatingContract implements Contract {
 
-	private final Contract delegate;
+  private final Contract delegate;
 
-	public ReactiveDelegatingContract(final Contract delegate) {
-		this.delegate = checkNotNull(delegate, "delegate must not be null");
-	}
+  public ReactiveDelegatingContract(final Contract delegate) {
+    this.delegate = checkNotNull(delegate, "delegate must not be null");
+  }
 
-	@Override
-	public List<MethodMetadata> parseAndValidatateMetadata(final Class<?> targetType) {
-		final List<MethodMetadata> methodsMetadata = this.delegate.parseAndValidatateMetadata(targetType);
+  @Override
+  public List<MethodMetadata> parseAndValidatateMetadata(final Class<?> targetType) {
+    final List<MethodMetadata> methodsMetadata =
+        this.delegate.parseAndValidatateMetadata(targetType);
 
-		for (final MethodMetadata metadata : methodsMetadata) {
-			final Type type = metadata.returnType();
-			if (!isMonoOrFlux(type)) {
-				throw new IllegalArgumentException(String.format(
-						"Method %s of contract %s doesn't returns reactor.core.publisher.Mono or reactor.core.publisher.Flux",
-						metadata.configKey(), targetType.getSimpleName()));
-			}
-		}
+    for (final MethodMetadata metadata : methodsMetadata) {
+      final Type type = metadata.returnType();
+      if (!isMonoOrFlux(type)) {
+        throw new IllegalArgumentException(String.format(
+            "Method %s of contract %s doesn't returns reactor.core.publisher.Mono or reactor.core.publisher.Flux",
+            metadata.configKey(), targetType.getSimpleName()));
+      }
+    }
 
-		return methodsMetadata;
-	}
+    return methodsMetadata;
+  }
 
-	private boolean isMonoOrFlux(final Type type) {
-		return (type instanceof ParameterizedType)
-				&& (((ParameterizedType) type).getRawType() == Mono.class
-						|| ((ParameterizedType) type).getRawType() == Flux.class);
-	}
+  private boolean isMonoOrFlux(final Type type) {
+    return (type instanceof ParameterizedType)
+        && (((ParameterizedType) type).getRawType() == Mono.class
+            || ((ParameterizedType) type).getRawType() == Flux.class);
+  }
 }

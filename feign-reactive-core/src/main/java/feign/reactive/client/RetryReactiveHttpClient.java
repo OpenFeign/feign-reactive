@@ -19,10 +19,8 @@ import org.slf4j.LoggerFactory;
 import feign.reactive.utils.ReactiveUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import java.lang.reflect.Type;
 import java.util.function.Function;
-
 import static feign.reactive.utils.FeignUtils.methodTag;
 
 /**
@@ -32,67 +30,67 @@ import static feign.reactive.utils.FeignUtils.methodTag;
  */
 public class RetryReactiveHttpClient<T> implements ReactiveHttpClient<T> {
 
-	private static final org.slf4j.Logger logger = LoggerFactory
-			.getLogger(RetryReactiveHttpClient.class);
+  private static final org.slf4j.Logger logger = LoggerFactory
+      .getLogger(RetryReactiveHttpClient.class);
 
-	private final String feignMethodTag;
-	private final ReactiveHttpClient<T> reactiveClient;
-	private final Function<Flux<Throwable>, Publisher<?>> retryFunction;
+  private final String feignMethodTag;
+  private final ReactiveHttpClient<T> reactiveClient;
+  private final Function<Flux<Throwable>, Publisher<?>> retryFunction;
 
-	public static <T> ReactiveHttpClient<T> retry(
-			ReactiveHttpClient<T> reactiveClient,
-			MethodMetadata methodMetadata,
-			Function<Flux<Throwable>, Publisher<Throwable>> retryFunction){
-		return new RetryReactiveHttpClient<>(reactiveClient, methodMetadata, retryFunction);
-	}
+  public static <T> ReactiveHttpClient<T> retry(
+                                                ReactiveHttpClient<T> reactiveClient,
+                                                MethodMetadata methodMetadata,
+                                                Function<Flux<Throwable>, Publisher<Throwable>> retryFunction) {
+    return new RetryReactiveHttpClient<>(reactiveClient, methodMetadata, retryFunction);
+  }
 
-	private RetryReactiveHttpClient(ReactiveHttpClient<T> reactiveClient,
-								   MethodMetadata methodMetadata,
-								   Function<Flux<Throwable>, Publisher<Throwable>> retryFunction) {
-		this.reactiveClient = reactiveClient;
-		this.feignMethodTag = methodTag(methodMetadata);
-		this.retryFunction = wrapWithLog(retryFunction, feignMethodTag);
-	}
+  private RetryReactiveHttpClient(ReactiveHttpClient<T> reactiveClient,
+      MethodMetadata methodMetadata,
+      Function<Flux<Throwable>, Publisher<Throwable>> retryFunction) {
+    this.reactiveClient = reactiveClient;
+    this.feignMethodTag = methodTag(methodMetadata);
+    this.retryFunction = wrapWithLog(retryFunction, feignMethodTag);
+  }
 
-	@Override
-	public Publisher<T> executeRequest(ReactiveHttpRequest request, Type returnPublisherType){
-		Publisher<T> response = reactiveClient.executeRequest(request, returnPublisherType);
-		if(returnPublisherType == Mono.class){
-			return ((Mono<T>)response).retryWhen(retryFunction).onErrorMap(outOfRetries());
-		} else {
-			return ((Flux<T>)response).retryWhen(retryFunction).onErrorMap(outOfRetries());
-		}
-	}
+  @Override
+  public Publisher<T> executeRequest(ReactiveHttpRequest request, Type returnPublisherType) {
+    Publisher<T> response = reactiveClient.executeRequest(request, returnPublisherType);
+    if (returnPublisherType == Mono.class) {
+      return ((Mono<T>) response).retryWhen(retryFunction).onErrorMap(outOfRetries());
+    } else {
+      return ((Flux<T>) response).retryWhen(retryFunction).onErrorMap(outOfRetries());
+    }
+  }
 
-	@Override
-	public Mono<ReactiveHttpResponse<T>> executeRequest(ReactiveHttpRequest request) {
-		return reactiveClient.executeRequest(request);
-	}
+  @Override
+  public Mono<ReactiveHttpResponse<T>> executeRequest(ReactiveHttpRequest request) {
+    return reactiveClient.executeRequest(request);
+  }
 
-	private Function<Throwable, Throwable> outOfRetries() {
-		return throwable -> {
-			logger.debug("[{}]---> USED ALL RETRIES", feignMethodTag, throwable);
-			return new OutOfRetriesException(throwable, feignMethodTag);
-		};
-	}
+  private Function<Throwable, Throwable> outOfRetries() {
+    return throwable -> {
+      logger.debug("[{}]---> USED ALL RETRIES", feignMethodTag, throwable);
+      return new OutOfRetriesException(throwable, feignMethodTag);
+    };
+  }
 
-	private static Function<Flux<Throwable>, Publisher<?>> wrapWithLog(
-			Function<Flux<Throwable>, Publisher<Throwable>> retryFunction,
-			String feignMethodTag) {
-		return throwableFlux -> {
-			Publisher<Throwable> publisher = retryFunction.apply(throwableFlux);
-			publisher.subscribe(ReactiveUtils.onNext(throwable -> {
-				if (logger.isDebugEnabled()) {
-					logger.debug("[{}]---> RETRYING on error", feignMethodTag, throwable);
-				}
-			}));
-			return publisher;
-		};
-	}
+  private static Function<Flux<Throwable>, Publisher<?>> wrapWithLog(
+                                                                     Function<Flux<Throwable>, Publisher<Throwable>> retryFunction,
+                                                                     String feignMethodTag) {
+    return throwableFlux -> {
+      Publisher<Throwable> publisher = retryFunction.apply(throwableFlux);
+      publisher.subscribe(ReactiveUtils.onNext(throwable -> {
+        if (logger.isDebugEnabled()) {
+          logger.debug("[{}]---> RETRYING on error", feignMethodTag, throwable);
+        }
+      }));
+      return publisher;
+    };
+  }
 
-	public static class OutOfRetriesException extends Exception {
-		OutOfRetriesException(Throwable cause, String feignMethodTag) {
-			super("All retries used for: "+feignMethodTag, cause);
-		}
-	}
+  public static class OutOfRetriesException extends Exception {
+    OutOfRetriesException(Throwable cause, String feignMethodTag) {
+      super("All retries used for: " + feignMethodTag, cause);
+    }
+  }
 }

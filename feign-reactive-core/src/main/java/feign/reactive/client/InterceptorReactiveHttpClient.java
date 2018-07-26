@@ -20,10 +20,10 @@ package feign.reactive.client;
  */
 public class InterceptorReactiveHttpClient<T> {
 
-	public static <T> ReactiveHttpClient<T> intercept(
-			ReactiveHttpClient<T> reactiveHttpClient,
-			ReactiveHttpRequestInterceptor interceptor){
-		return request -> reactiveHttpClient.executeRequest(interceptor.apply(request));
-	}
+  public static <T> ReactiveHttpClient<T> intercept(
+                                                    ReactiveHttpClient<T> reactiveHttpClient,
+                                                    ReactiveHttpRequestInterceptor interceptor) {
+    return request -> reactiveHttpClient.executeRequest(interceptor.apply(request));
+  }
 
 }

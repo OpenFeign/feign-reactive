@@ -18,60 +18,59 @@ package feign.reactive;
  */
 public class ReactiveOptions {
 
-	private final Integer connectTimeoutMillis;
-	private final Integer readTimeoutMillis;
-	private final Boolean tryUseCompression;
+  private final Integer connectTimeoutMillis;
+  private final Integer readTimeoutMillis;
+  private final Boolean tryUseCompression;
 
-	private ReactiveOptions(Integer connectTimeoutMillis, Integer readTimeoutMillis,
-			Boolean tryUseCompression) {
-		this.connectTimeoutMillis = connectTimeoutMillis;
-		this.readTimeoutMillis = readTimeoutMillis;
-		this.tryUseCompression = tryUseCompression;
-	}
+  private ReactiveOptions(Integer connectTimeoutMillis, Integer readTimeoutMillis,
+      Boolean tryUseCompression) {
+    this.connectTimeoutMillis = connectTimeoutMillis;
+    this.readTimeoutMillis = readTimeoutMillis;
+    this.tryUseCompression = tryUseCompression;
+  }
 
-	public Integer getConnectTimeoutMillis() {
-		return connectTimeoutMillis;
-	}
+  public Integer getConnectTimeoutMillis() {
+    return connectTimeoutMillis;
+  }
 
-	public Integer getReadTimeoutMillis() {
-		return readTimeoutMillis;
-	}
+  public Integer getReadTimeoutMillis() {
+    return readTimeoutMillis;
+  }
 
-	public Boolean isTryUseCompression() {
-		return tryUseCompression;
-	}
+  public Boolean isTryUseCompression() {
+    return tryUseCompression;
+  }
 
-	public boolean isEmpty() {
-		return connectTimeoutMillis == null && readTimeoutMillis == null
-				&& tryUseCompression == null;
-	}
+  public boolean isEmpty() {
+    return connectTimeoutMillis == null && readTimeoutMillis == null
+        && tryUseCompression == null;
+  }
 
-	public static class Builder {
-		private Integer connectTimeoutMillis;
-		private Integer readTimeoutMillis;
-		private Boolean tryUseCompression;
+  public static class Builder {
+    private Integer connectTimeoutMillis;
+    private Integer readTimeoutMillis;
+    private Boolean tryUseCompression;
 
-		public Builder() {
-		}
+    public Builder() {}
 
-		public Builder setConnectTimeoutMillis(int connectTimeoutMillis) {
-			this.connectTimeoutMillis = connectTimeoutMillis;
-			return this;
-		}
+    public Builder setConnectTimeoutMillis(int connectTimeoutMillis) {
+      this.connectTimeoutMillis = connectTimeoutMillis;
+      return this;
+    }
 
-		public Builder setReadTimeoutMillis(int readTimeoutMillis) {
-			this.readTimeoutMillis = readTimeoutMillis;
-			return this;
-		}
+    public Builder setReadTimeoutMillis(int readTimeoutMillis) {
+      this.readTimeoutMillis = readTimeoutMillis;
+      return this;
+    }
 
-		public Builder setTryUseCompression(boolean tryUseCompression) {
-			this.tryUseCompression = tryUseCompression;
-			return this;
-		}
+    public Builder setTryUseCompression(boolean tryUseCompression) {
+      this.tryUseCompression = tryUseCompression;
+      return this;
+    }
 
-		public ReactiveOptions build() {
-			return new ReactiveOptions(connectTimeoutMillis, readTimeoutMillis,
-					tryUseCompression);
-		}
-	}
+    public ReactiveOptions build() {
+      return new ReactiveOptions(connectTimeoutMillis, readTimeoutMillis,
+          tryUseCompression);
+    }
+  }
 }

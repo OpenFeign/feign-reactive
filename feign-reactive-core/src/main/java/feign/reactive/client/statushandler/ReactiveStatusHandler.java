@@ -21,7 +21,7 @@ import reactor.core.publisher.Mono;
  */
 public interface ReactiveStatusHandler {
 
-	boolean shouldHandle(int status);
+  boolean shouldHandle(int status);
 
-	Mono<? extends Throwable> decode(String methodKey, ReactiveHttpResponse<?> response);
+  Mono<? extends Throwable> decode(String methodKey, ReactiveHttpResponse<?> response);
 }

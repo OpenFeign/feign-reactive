@@ -17,5 +17,5 @@ package feign.reactive.testcase.domain;
  * Ice cream flavors.
  */
 public enum Flavor {
-	STRAWBERRY, CHOCOLATE, BANANA, PISTACHIO, MELON, VANILLA
+  STRAWBERRY, CHOCOLATE, BANANA, PISTACHIO, MELON, VANILLA
 }

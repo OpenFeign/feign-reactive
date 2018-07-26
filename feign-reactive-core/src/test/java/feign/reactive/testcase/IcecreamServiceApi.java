@@ -28,37 +28,37 @@ import reactor.core.publisher.Mono;
  *
  * @author Sergii Karpenko
  */
-@Headers({ "Accept: application/json" })
+@Headers({"Accept: application/json"})
 public interface IcecreamServiceApi {
 
-	RuntimeException RUNTIME_EXCEPTION = new RuntimeException("tests exception");
+  RuntimeException RUNTIME_EXCEPTION = new RuntimeException("tests exception");
 
-	@RequestLine("GET /icecream/flavors")
-	Flux<Flavor> getAvailableFlavors();
+  @RequestLine("GET /icecream/flavors")
+  Flux<Flavor> getAvailableFlavors();
 
-	@RequestLine("GET /icecream/mixins")
-	Flux<Mixin> getAvailableMixins();
+  @RequestLine("GET /icecream/mixins")
+  Flux<Mixin> getAvailableMixins();
 
-	@RequestLine("POST /icecream/orders")
-	@Headers("Content-Type: application/json")
-	Mono<Bill> makeOrder(IceCreamOrder order);
+  @RequestLine("POST /icecream/orders")
+  @Headers("Content-Type: application/json")
+  Mono<Bill> makeOrder(IceCreamOrder order);
 
-	@RequestLine("GET /icecream/orders/{orderId}")
-	Mono<IceCreamOrder> findOrder(@Param("orderId") int orderId);
+  @RequestLine("GET /icecream/orders/{orderId}")
+  Mono<IceCreamOrder> findOrder(@Param("orderId") int orderId);
 
-	@RequestLine("POST /icecream/bills/pay")
-	@Headers("Content-Type: application/json")
-	Mono<Void> payBill(Bill bill);
+  @RequestLine("POST /icecream/bills/pay")
+  @Headers("Content-Type: application/json")
+  Mono<Void> payBill(Bill bill);
 
-	default Mono<IceCreamOrder> findFirstOrder() {
-		return findOrder(1);
-	}
+  default Mono<IceCreamOrder> findFirstOrder() {
+    return findOrder(1);
+  }
 
-	default Mono<IceCreamOrder> throwExceptionMono() {
-		throw RUNTIME_EXCEPTION;
-	}
+  default Mono<IceCreamOrder> throwExceptionMono() {
+    throw RUNTIME_EXCEPTION;
+  }
 
-	default Flux<IceCreamOrder> throwExceptionFlux() {
-		throw RUNTIME_EXCEPTION;
-	}
+  default Flux<IceCreamOrder> throwExceptionFlux() {
+    throw RUNTIME_EXCEPTION;
+  }
 }

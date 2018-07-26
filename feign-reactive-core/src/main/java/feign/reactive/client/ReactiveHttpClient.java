@@ -15,7 +15,6 @@ package feign.reactive.client;
 
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
-
 import java.lang.reflect.Type;
 
 /**
@@ -25,14 +24,14 @@ import java.lang.reflect.Type;
  */
 public interface ReactiveHttpClient<T> {
 
-	Mono<ReactiveHttpResponse<T>> executeRequest(ReactiveHttpRequest request);
+  Mono<ReactiveHttpResponse<T>> executeRequest(ReactiveHttpRequest request);
 
-	default Publisher<T> executeRequest(ReactiveHttpRequest request, Type returnPublisherType) {
-		Mono<ReactiveHttpResponse<T>> response = executeRequest(request);
-		if (returnPublisherType == Mono.class) {
-			return response.flatMap(resp -> (Mono<T>) resp.body());
-		} else {
-			return response.flatMapMany(resp -> resp.body());
-		}
-	}
+  default Publisher<T> executeRequest(ReactiveHttpRequest request, Type returnPublisherType) {
+    Mono<ReactiveHttpResponse<T>> response = executeRequest(request);
+    if (returnPublisherType == Mono.class) {
+      return response.flatMap(resp -> (Mono<T>) resp.body());
+    } else {
+      return response.flatMapMany(resp -> resp.body());
+    }
+  }
 }

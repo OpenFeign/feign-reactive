@@ -16,27 +16,26 @@ package feign.reactive;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 import java.util.function.Predicate;
 
 /**
  * Helper methods for tests.
  */
 class TestUtils {
-	static final ObjectMapper MAPPER;
+  static final ObjectMapper MAPPER;
 
-	static {
-		MAPPER = new ObjectMapper();
-		MAPPER.registerModule(new JavaTimeModule());
-	}
+  static {
+    MAPPER = new ObjectMapper();
+    MAPPER.registerModule(new JavaTimeModule());
+  }
 
-	public static <T> Predicate<T> equalsComparingFieldByFieldRecursively(T rhs){
-		return lhs -> {
-			try {
-				return MAPPER.writeValueAsString(lhs).equals(MAPPER.writeValueAsString(rhs));
-			} catch (JsonProcessingException e) {
-				throw new RuntimeException(e);
-			}
-		};
-	}
+  public static <T> Predicate<T> equalsComparingFieldByFieldRecursively(T rhs) {
+    return lhs -> {
+      try {
+        return MAPPER.writeValueAsString(lhs).equals(MAPPER.writeValueAsString(rhs));
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException(e);
+      }
+    };
+  }
 }

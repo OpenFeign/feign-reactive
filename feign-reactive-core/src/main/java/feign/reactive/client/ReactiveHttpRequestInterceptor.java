@@ -22,5 +22,5 @@ import java.util.function.Function;
  *
  */
 public interface ReactiveHttpRequestInterceptor
-		extends Function<ReactiveHttpRequest, ReactiveHttpRequest> {
+    extends Function<ReactiveHttpRequest, ReactiveHttpRequest> {
 }

@@ -24,7 +24,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static feign.reactive.TestUtils.equalsComparingFieldByFieldRecursively;
@@ -38,36 +37,35 @@ import static feign.reactive.TestUtils.equalsComparingFieldByFieldRecursively;
 
 abstract public class CompressionTest {
 
-	@ClassRule
-	public static WireMockClassRule wireMockRule = new WireMockClassRule(
-			wireMockConfig().dynamicPort());
+  @ClassRule
+  public static WireMockClassRule wireMockRule = new WireMockClassRule(
+      wireMockConfig().dynamicPort());
 
-	abstract protected ReactiveFeign.Builder<IcecreamServiceApi> builder(ReactiveOptions options);
+  abstract protected ReactiveFeign.Builder<IcecreamServiceApi> builder(ReactiveOptions options);
 
-	@Test
-	public void testCompression() throws JsonProcessingException {
+  @Test
+  public void testCompression() throws JsonProcessingException {
 
-		IceCreamOrder order = new OrderGenerator().generate(20);
-		Bill billExpected = Bill.makeBill(order);
+    IceCreamOrder order = new OrderGenerator().generate(20);
+    Bill billExpected = Bill.makeBill(order);
 
-		wireMockRule.stubFor(post(urlEqualTo("/icecream/orders"))
-				.withHeader("Accept-Encoding", containing("gzip"))
-				.withRequestBody(equalTo(TestUtils.MAPPER.writeValueAsString(order)))
-				.willReturn(aResponse().withStatus(200)
-						.withHeader("Content-Type", "application/json")
-						.withHeader("Content-Encoding", "gzip")
-						.withBody(Gzip.gzip(TestUtils.MAPPER.writeValueAsString(billExpected)))));
+    wireMockRule.stubFor(post(urlEqualTo("/icecream/orders"))
+        .withHeader("Accept-Encoding", containing("gzip"))
+        .withRequestBody(equalTo(TestUtils.MAPPER.writeValueAsString(order)))
+        .willReturn(aResponse().withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withHeader("Content-Encoding", "gzip")
+            .withBody(Gzip.gzip(TestUtils.MAPPER.writeValueAsString(billExpected)))));
 
-		IcecreamServiceApi client = builder(
-				new ReactiveOptions.Builder()
-						.setTryUseCompression(true)
-						.build()
-		)
-				.target(IcecreamServiceApi.class, "http://localhost:" + wireMockRule.port());
+    IcecreamServiceApi client = builder(
+        new ReactiveOptions.Builder()
+            .setTryUseCompression(true)
+            .build())
+                .target(IcecreamServiceApi.class, "http://localhost:" + wireMockRule.port());
 
-		Mono<Bill> bill = client.makeOrder(order);
-		StepVerifier.create(bill)
-				.expectNextMatches(equalsComparingFieldByFieldRecursively(billExpected))
-				.verifyComplete();
-	}
+    Mono<Bill> bill = client.makeOrder(order);
+    StepVerifier.create(bill)
+        .expectNextMatches(equalsComparingFieldByFieldRecursively(billExpected))
+        .verifyComplete();
+  }
 }

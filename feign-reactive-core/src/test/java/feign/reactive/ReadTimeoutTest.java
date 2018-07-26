@@ -19,7 +19,6 @@ import feign.reactive.testcase.IcecreamServiceApi;
 import org.junit.ClassRule;
 import org.junit.Test;
 import reactor.test.StepVerifier;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
@@ -28,31 +27,30 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
  */
 abstract public class ReadTimeoutTest {
 
-	@ClassRule
-	public static WireMockClassRule wireMockRule = new WireMockClassRule(
-			wireMockConfig().dynamicPort());
+  @ClassRule
+  public static WireMockClassRule wireMockRule = new WireMockClassRule(
+      wireMockConfig().dynamicPort());
 
-	abstract protected ReactiveFeign.Builder<IcecreamServiceApi> builder(ReactiveOptions options);
+  abstract protected ReactiveFeign.Builder<IcecreamServiceApi> builder(ReactiveOptions options);
 
-	@Test
-	public void shouldFailOnReadTimeout() {
+  @Test
+  public void shouldFailOnReadTimeout() {
 
-		String orderUrl = "/icecream/orders/1";
+    String orderUrl = "/icecream/orders/1";
 
-		wireMockRule.stubFor(get(urlEqualTo(orderUrl))
-				.withHeader("Accept", equalTo("application/json"))
-				.willReturn(aResponse().withFixedDelay(200)));
+    wireMockRule.stubFor(get(urlEqualTo(orderUrl))
+        .withHeader("Accept", equalTo("application/json"))
+        .willReturn(aResponse().withFixedDelay(200)));
 
-		IcecreamServiceApi client = builder(
-				new ReactiveOptions.Builder()
-						.setConnectTimeoutMillis(300)
-						.setReadTimeoutMillis(100)
-						.build()
-		)
-				.target(IcecreamServiceApi.class,
-						"http://localhost:" + wireMockRule.port());
+    IcecreamServiceApi client = builder(
+        new ReactiveOptions.Builder()
+            .setConnectTimeoutMillis(300)
+            .setReadTimeoutMillis(100)
+            .build())
+                .target(IcecreamServiceApi.class,
+                    "http://localhost:" + wireMockRule.port());
 
-		StepVerifier.create(client.findOrder(1))
-				.expectError(ReadTimeoutException.class);
-	}
+    StepVerifier.create(client.findOrder(1))
+        .expectError(ReadTimeoutException.class);
+  }
 }

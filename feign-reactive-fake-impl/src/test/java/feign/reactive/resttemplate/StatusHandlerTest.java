@@ -22,8 +22,8 @@ import feign.reactive.testcase.IcecreamServiceApi;
  */
 public class StatusHandlerTest extends feign.reactive.StatusHandlerTest {
 
-	@Override
-	protected ReactiveFeign.Builder<IcecreamServiceApi> builder() {
-		return RestTemplateFakeReactiveFeign.builder();
-	}
+  @Override
+  protected ReactiveFeign.Builder<IcecreamServiceApi> builder() {
+    return RestTemplateFakeReactiveFeign.builder();
+  }
 }

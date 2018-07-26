@@ -21,10 +21,10 @@ import feign.reactive.testcase.IcecreamServiceApi;
 /**
  * @author Sergii Karpenko
  */
-public class ReadTimeoutTest extends feign.reactive.ReadTimeoutTest{
+public class ReadTimeoutTest extends feign.reactive.ReadTimeoutTest {
 
-	@Override
-	protected ReactiveFeign.Builder<IcecreamServiceApi> builder(ReactiveOptions options) {
-		return RestTemplateFakeReactiveFeign.builder(options);
-	}
+  @Override
+  protected ReactiveFeign.Builder<IcecreamServiceApi> builder(ReactiveOptions options) {
+    return RestTemplateFakeReactiveFeign.builder(options);
+  }
 }

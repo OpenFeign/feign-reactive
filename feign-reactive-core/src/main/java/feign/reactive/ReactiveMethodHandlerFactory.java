@@ -18,5 +18,5 @@ import feign.Target;
 
 public interface ReactiveMethodHandlerFactory {
 
-	ReactiveMethodHandler create(final Target target, final MethodMetadata metadata);
+  ReactiveMethodHandler create(final Target target, final MethodMetadata metadata);
 }

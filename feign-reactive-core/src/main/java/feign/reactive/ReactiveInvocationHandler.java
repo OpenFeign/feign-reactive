@@ -19,103 +19,102 @@ import feign.Target;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
-
 import static feign.Util.checkNotNull;
 
 /**
- * {@link InvocationHandler} implementation that transforms calls to methods of feign
- * contract into asynchronous HTTP requests via spring WebClient.
+ * {@link InvocationHandler} implementation that transforms calls to methods of feign contract into
+ * asynchronous HTTP requests via spring WebClient.
  *
  * @author Sergii Karpenko
  */
 public final class ReactiveInvocationHandler implements InvocationHandler {
-	private final Target<?> target;
-	private final Map<Method, MethodHandler> dispatch;
+  private final Target<?> target;
+  private final Map<Method, MethodHandler> dispatch;
 
-	private ReactiveInvocationHandler(final Target<?> target,
-			final Map<Method, MethodHandler> dispatch) {
-		this.target = checkNotNull(target, "target must not be null");
-		this.dispatch = checkNotNull(dispatch, "dispatch must not be null");
-		defineObjectMethodsHandlers();
-	}
+  private ReactiveInvocationHandler(final Target<?> target,
+      final Map<Method, MethodHandler> dispatch) {
+    this.target = checkNotNull(target, "target must not be null");
+    this.dispatch = checkNotNull(dispatch, "dispatch must not be null");
+    defineObjectMethodsHandlers();
+  }
 
-	private void defineObjectMethodsHandlers()  {
-		try {
-			dispatch.put(Object.class.getMethod("equals", Object.class),
-                    args -> {
-                        Object otherHandler = args.length > 0 && args[0] != null
-								? Proxy.getInvocationHandler(args[0]) : null;
-                        return equals(otherHandler);
-                    });
-			dispatch.put(Object.class.getMethod("hashCode"),
-					args -> hashCode());
-			dispatch.put(Object.class.getMethod("toString"),
-					args -> toString());
-		} catch (NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-	}
+  private void defineObjectMethodsHandlers() {
+    try {
+      dispatch.put(Object.class.getMethod("equals", Object.class),
+          args -> {
+            Object otherHandler = args.length > 0 && args[0] != null
+                ? Proxy.getInvocationHandler(args[0])
+                : null;
+            return equals(otherHandler);
+          });
+      dispatch.put(Object.class.getMethod("hashCode"),
+          args -> hashCode());
+      dispatch.put(Object.class.getMethod("toString"),
+          args -> toString());
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-	@Override
-	public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-		if(method.getDeclaringClass().equals(Object.class)){
-			return dispatch.get(method).invoke(args);
-		} else {
-			return invokeRequestMethod(method, args);
-		}
-	}
+  @Override
+  public Object invoke(final Object proxy, final Method method, final Object[] args)
+      throws Throwable {
+    if (method.getDeclaringClass().equals(Object.class)) {
+      return dispatch.get(method).invoke(args);
+    } else {
+      return invokeRequestMethod(method, args);
+    }
+  }
 
-	/**
-	 * Transforms method invocation into request that executed by
-	 * {@link org.springframework.web.reactive.function.client.WebClient}.
-	 *
-	 * @param method invoked method
-	 * @param args provided arguments to method
-	 * @return Publisher with decoded result
-	 */
-	private Publisher invokeRequestMethod(final Method method, final Object[] args) {
-		try {
-			return (Publisher) dispatch.get(method).invoke(args);
-		}
-		catch (Throwable throwable) {
-			return method.getReturnType() == Mono.class ? Mono.error(throwable)
-					: Flux.error(throwable);
-		}
-	}
+  /**
+   * Transforms method invocation into request that executed by
+   * {@link org.springframework.web.reactive.function.client.WebClient}.
+   *
+   * @param method invoked method
+   * @param args provided arguments to method
+   * @return Publisher with decoded result
+   */
+  private Publisher invokeRequestMethod(final Method method, final Object[] args) {
+    try {
+      return (Publisher) dispatch.get(method).invoke(args);
+    } catch (Throwable throwable) {
+      return method.getReturnType() == Mono.class ? Mono.error(throwable)
+          : Flux.error(throwable);
+    }
+  }
 
-	@Override
-	public boolean equals(final Object other) {
-		if (other instanceof ReactiveInvocationHandler) {
-			final ReactiveInvocationHandler otherHandler = (ReactiveInvocationHandler) other;
-			return this.target.equals(otherHandler.target);
-		}
-		return false;
-	}
+  @Override
+  public boolean equals(final Object other) {
+    if (other instanceof ReactiveInvocationHandler) {
+      final ReactiveInvocationHandler otherHandler = (ReactiveInvocationHandler) other;
+      return this.target.equals(otherHandler.target);
+    }
+    return false;
+  }
 
-	@Override
-	public int hashCode() {
-		return target.hashCode();
-	}
+  @Override
+  public int hashCode() {
+    return target.hashCode();
+  }
 
-	@Override
-	public String toString() {
-		return target.toString();
-	}
+  @Override
+  public String toString() {
+    return target.toString();
+  }
 
-	/**
-	 * Factory for ReactiveInvocationHandler.
-	 */
-	public static final class Factory implements InvocationHandlerFactory {
+  /**
+   * Factory for ReactiveInvocationHandler.
+   */
+  public static final class Factory implements InvocationHandlerFactory {
 
-		@Override
-		public InvocationHandler create(final Target target,
-				final Map<Method, MethodHandler> dispatch) {
-			return new ReactiveInvocationHandler(target, dispatch);
-		}
-	}
+    @Override
+    public InvocationHandler create(final Target target,
+                                    final Map<Method, MethodHandler> dispatch) {
+      return new ReactiveInvocationHandler(target, dispatch);
+    }
+  }
 }

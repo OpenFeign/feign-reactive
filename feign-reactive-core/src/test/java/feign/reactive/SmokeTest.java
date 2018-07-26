@@ -25,10 +25,8 @@ import org.junit.rules.ExpectedException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static feign.reactive.TestUtils.equalsComparingFieldByFieldRecursively;
@@ -40,110 +38,110 @@ import static java.util.Arrays.asList;
 
 abstract public class SmokeTest {
 
-	@ClassRule
-	public static WireMockClassRule wireMockRule = new WireMockClassRule(
-			wireMockConfig().dynamicPort());
+  @ClassRule
+  public static WireMockClassRule wireMockRule = new WireMockClassRule(
+      wireMockConfig().dynamicPort());
 
-	@Before
-	public void resetServers() {
-		wireMockRule.resetAll();
-	}
+  @Before
+  public void resetServers() {
+    wireMockRule.resetAll();
+  }
 
-	abstract protected ReactiveFeign.Builder<IcecreamServiceApi> builder();
+  abstract protected ReactiveFeign.Builder<IcecreamServiceApi> builder();
 
-	private IcecreamServiceApi client;
+  private IcecreamServiceApi client;
 
-	private OrderGenerator generator = new OrderGenerator();
-	private Map<Integer, IceCreamOrder> orders = generator.generateRange(10).stream()
-			.collect(Collectors.toMap(IceCreamOrder::getId, o -> o));
+  private OrderGenerator generator = new OrderGenerator();
+  private Map<Integer, IceCreamOrder> orders = generator.generateRange(10).stream()
+      .collect(Collectors.toMap(IceCreamOrder::getId, o -> o));
 
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
-	@Before
-	public void setUp() {
-		String targetUrl = "http://localhost:" + wireMockRule.port();
-		client = builder()
-				.decode404()
-				.target(IcecreamServiceApi.class, targetUrl);
-	}
+  @Before
+  public void setUp() {
+    String targetUrl = "http://localhost:" + wireMockRule.port();
+    client = builder()
+        .decode404()
+        .target(IcecreamServiceApi.class, targetUrl);
+  }
 
-	@Test
-	public void testSimpleGet_success() throws JsonProcessingException {
+  @Test
+  public void testSimpleGet_success() throws JsonProcessingException {
 
-		wireMockRule.stubFor(get(urlEqualTo("/icecream/flavors"))
-				.willReturn(aResponse().withStatus(200)
-						.withHeader("Content-Type", "application/json")
-						.withBody(TestUtils.MAPPER.writeValueAsString(Flavor.values()))));
+    wireMockRule.stubFor(get(urlEqualTo("/icecream/flavors"))
+        .willReturn(aResponse().withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(TestUtils.MAPPER.writeValueAsString(Flavor.values()))));
 
-		wireMockRule.stubFor(get(urlEqualTo("/icecream/mixins"))
-				.willReturn(aResponse().withStatus(200)
-						.withHeader("Content-Type", "application/json")
-						.withBody(TestUtils.MAPPER.writeValueAsString(Mixin.values()))));
+    wireMockRule.stubFor(get(urlEqualTo("/icecream/mixins"))
+        .willReturn(aResponse().withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(TestUtils.MAPPER.writeValueAsString(Mixin.values()))));
 
-		Flux<Flavor> flavors = client.getAvailableFlavors();
-		Flux<Mixin> mixins = client.getAvailableMixins();
+    Flux<Flavor> flavors = client.getAvailableFlavors();
+    Flux<Mixin> mixins = client.getAvailableMixins();
 
-		StepVerifier.create(flavors)
-				.expectNextSequence(asList(Flavor.values()))
-				.verifyComplete();
-		StepVerifier.create(mixins)
-				.expectNextSequence(asList(Mixin.values()))
-				.verifyComplete();
+    StepVerifier.create(flavors)
+        .expectNextSequence(asList(Flavor.values()))
+        .verifyComplete();
+    StepVerifier.create(mixins)
+        .expectNextSequence(asList(Mixin.values()))
+        .verifyComplete();
 
-	}
+  }
 
-	@Test
-	public void testFindOrder_success() throws JsonProcessingException {
+  @Test
+  public void testFindOrder_success() throws JsonProcessingException {
 
-		IceCreamOrder orderExpected = orders.get(1);
-		wireMockRule.stubFor(get(urlEqualTo("/icecream/orders/1"))
-				.willReturn(aResponse().withStatus(200)
-						.withHeader("Content-Type", "application/json")
-						.withBody(TestUtils.MAPPER.writeValueAsString(orderExpected))));
+    IceCreamOrder orderExpected = orders.get(1);
+    wireMockRule.stubFor(get(urlEqualTo("/icecream/orders/1"))
+        .willReturn(aResponse().withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(TestUtils.MAPPER.writeValueAsString(orderExpected))));
 
-		Mono<IceCreamOrder> order = client.findOrder(1);
+    Mono<IceCreamOrder> order = client.findOrder(1);
 
-		StepVerifier.create(order)
-				.expectNextMatches(equalsComparingFieldByFieldRecursively(orderExpected))
-				.verifyComplete();
-	}
+    StepVerifier.create(order)
+        .expectNextMatches(equalsComparingFieldByFieldRecursively(orderExpected))
+        .verifyComplete();
+  }
 
-	@Test
-	public void testFindOrder_empty() {
+  @Test
+  public void testFindOrder_empty() {
 
-		Mono<IceCreamOrder> orderEmpty = client.findOrder(123);
+    Mono<IceCreamOrder> orderEmpty = client.findOrder(123);
 
-		StepVerifier.create(orderEmpty)
-				.expectNextCount(0)
-				.verifyComplete();
-	}
+    StepVerifier.create(orderEmpty)
+        .expectNextCount(0)
+        .verifyComplete();
+  }
 
-	@Test
-	public void testMakeOrder_success() throws JsonProcessingException {
+  @Test
+  public void testMakeOrder_success() throws JsonProcessingException {
 
-		IceCreamOrder order = new OrderGenerator().generate(20);
-		Bill billExpected = Bill.makeBill(order);
+    IceCreamOrder order = new OrderGenerator().generate(20);
+    Bill billExpected = Bill.makeBill(order);
 
-		wireMockRule.stubFor(post(urlEqualTo("/icecream/orders"))
-				.withRequestBody(equalTo(TestUtils.MAPPER.writeValueAsString(order)))
-				.willReturn(aResponse().withStatus(200)
-						.withHeader("Content-Type", "application/json")
-						.withBody(TestUtils.MAPPER.writeValueAsString(billExpected))));
+    wireMockRule.stubFor(post(urlEqualTo("/icecream/orders"))
+        .withRequestBody(equalTo(TestUtils.MAPPER.writeValueAsString(order)))
+        .willReturn(aResponse().withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(TestUtils.MAPPER.writeValueAsString(billExpected))));
 
-		Mono<Bill> bill = client.makeOrder(order);
-		StepVerifier.create(bill)
-				.expectNextMatches(equalsComparingFieldByFieldRecursively(billExpected))
-				.verifyComplete();
-	}
+    Mono<Bill> bill = client.makeOrder(order);
+    StepVerifier.create(bill)
+        .expectNextMatches(equalsComparingFieldByFieldRecursively(billExpected))
+        .verifyComplete();
+  }
 
-	@Test
-	public void testPayBill_success() {
+  @Test
+  public void testPayBill_success() {
 
-		Bill bill = Bill.makeBill(new OrderGenerator().generate(30));
+    Bill bill = Bill.makeBill(new OrderGenerator().generate(30));
 
-		Mono<Void> result = client.payBill(bill);
-		StepVerifier.create(result)
-				.verifyComplete();
-	}
+    Mono<Void> result = client.payBill(bill);
+    StepVerifier.create(result)
+        .verifyComplete();
+  }
 }

@@ -23,8 +23,8 @@ import feign.reactive.testcase.IcecreamServiceApi;
  */
 public class ConnectionTimeoutTest extends feign.reactive.ConnectionTimeoutTest {
 
-	@Override
-	protected ReactiveFeign.Builder<IcecreamServiceApi> builder(ReactiveOptions options) {
-		return RestTemplateFakeReactiveFeign.builder(options);
-	}
+  @Override
+  protected ReactiveFeign.Builder<IcecreamServiceApi> builder(ReactiveOptions options) {
+    return RestTemplateFakeReactiveFeign.builder(options);
+  }
 }

@@ -18,7 +18,6 @@ import feign.reactive.testcase.IcecreamServiceApiBroken;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
 import static org.hamcrest.Matchers.containsString;
 
 /**
@@ -27,30 +26,32 @@ import static org.hamcrest.Matchers.containsString;
 
 abstract public class ContractTest {
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
-    abstract protected <T> ReactiveFeign.Builder<T> builder();
+  abstract protected <T> ReactiveFeign.Builder<T> builder();
 
-    @Test
-    public void shouldFailOnBrokenContract() {
+  @Test
+  public void shouldFailOnBrokenContract() {
 
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(containsString("Broken Contract"));
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage(containsString("Broken Contract"));
 
-        this.<IcecreamServiceApi>builder()
-                .contract(targetType -> {throw new IllegalArgumentException("Broken Contract");})
-                .target(IcecreamServiceApi.class, "http://localhost:8888");
-    }
+    this.<IcecreamServiceApi>builder()
+        .contract(targetType -> {
+          throw new IllegalArgumentException("Broken Contract");
+        })
+        .target(IcecreamServiceApi.class, "http://localhost:8888");
+  }
 
-    @Test
-    public void shouldFailIfNotReactiveContract() {
+  @Test
+  public void shouldFailIfNotReactiveContract() {
 
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(containsString("IcecreamServiceApiBroken#findOrder(int)"));
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage(containsString("IcecreamServiceApiBroken#findOrder(int)"));
 
-        this.<IcecreamServiceApiBroken>builder()
-                .target(IcecreamServiceApiBroken.class, "http://localhost:8888");
-    }
+    this.<IcecreamServiceApiBroken>builder()
+        .target(IcecreamServiceApiBroken.class, "http://localhost:8888");
+  }
 
 }

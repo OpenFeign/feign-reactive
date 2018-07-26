@@ -14,56 +14,55 @@
 package feign.reactive.client;
 
 import org.reactivestreams.Publisher;
-
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-
 import static feign.Util.checkNotNull;
 
 /**
  * An immutable reactive request to an http server.
+ * 
  * @author Sergii Karpenko
  */
 public final class ReactiveHttpRequest {
 
-	private final String method;
-	private final URI uri;
-	private final Map<String, List<String>> headers;
-	private final Publisher<Object> body;
+  private final String method;
+  private final URI uri;
+  private final Map<String, List<String>> headers;
+  private final Publisher<Object> body;
 
-	/**
-	 * No parameters can be null except {@code body}. All parameters must be effectively
-	 * immutable, via safe copies, not mutating or otherwise.
-	 */
-	public ReactiveHttpRequest(String method, URI uri,
-							   Map<String, List<String>> headers, Publisher<Object> body) {
-		this.method = checkNotNull(method, "method of %s", uri);
-		this.uri = checkNotNull(uri, "url");
-		this.headers = checkNotNull(headers, "headers of %s %s", method, uri);
-		this.body = body; // nullable
-	}
+  /**
+   * No parameters can be null except {@code body}. All parameters must be effectively immutable,
+   * via safe copies, not mutating or otherwise.
+   */
+  public ReactiveHttpRequest(String method, URI uri,
+      Map<String, List<String>> headers, Publisher<Object> body) {
+    this.method = checkNotNull(method, "method of %s", uri);
+    this.uri = checkNotNull(uri, "url");
+    this.headers = checkNotNull(headers, "headers of %s %s", method, uri);
+    this.body = body; // nullable
+  }
 
-	/* Method to invoke on the server. */
-	public String method() {
-		return method;
-	}
+  /* Method to invoke on the server. */
+  public String method() {
+    return method;
+  }
 
-	/* Fully resolved URL including query. */
-	public URI uri() {
-		return uri;
-	}
+  /* Fully resolved URL including query. */
+  public URI uri() {
+    return uri;
+  }
 
-	/* Ordered list of headers that will be sent to the server. */
-	public Map<String, List<String>> headers() {
-		return headers;
-	}
+  /* Ordered list of headers that will be sent to the server. */
+  public Map<String, List<String>> headers() {
+    return headers;
+  }
 
-	/**
-	 * If present, this is the replayable body to send to the server.
-	 */
-	public Publisher<Object> body() {
-		return body;
-	}
+  /**
+   * If present, this is the replayable body to send to the server.
+   */
+  public Publisher<Object> body() {
+    return body;
+  }
 
 }
