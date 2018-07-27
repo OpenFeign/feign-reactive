@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package feign.reactor.client;
+package feign;
 
 import org.reactivestreams.Publisher;
 import java.net.URI;
@@ -24,7 +24,7 @@ import static feign.Util.checkNotNull;
  * 
  * @author Sergii Karpenko
  */
-public final class ReactiveHttpRequest {
+public final class ReactiveRequest {
 
   private final String method;
   private final URI uri;
@@ -35,7 +35,7 @@ public final class ReactiveHttpRequest {
    * No parameters can be null except {@code body}. All parameters must be effectively immutable,
    * via safe copies, not mutating or otherwise.
    */
-  public ReactiveHttpRequest(String method, URI uri,
+  public ReactiveRequest(String method, URI uri,
       Map<String, List<String>> headers, Publisher<Object> body) {
     this.method = checkNotNull(method, "method of %s", uri);
     this.uri = checkNotNull(uri, "url");

@@ -11,26 +11,25 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package feign.reactor;
+package feign;
 
-import feign.InvocationHandlerFactory;
-import feign.InvocationHandlerFactory.MethodHandler;
-import feign.Target;
-import feign.reactor.client.ReactiveHttpClient;
-import org.reactivestreams.Publisher;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import static feign.Util.checkNotNull;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
-import static feign.Util.checkNotNull;
+
+import org.reactivestreams.Publisher;
+
+import feign.InvocationHandlerFactory.MethodHandler;
 
 /**
  * {@link InvocationHandler} implementation that transforms calls to methods of feign contract into
- * asynchronous HTTP requests via spring WebClient.
+ * asynchronous HTTP requests via a {@link ReactiveMethodHandler}
  *
  * @author Sergii Karpenko
+ * @author Kevin Davis
  */
 public final class ReactiveInvocationHandler implements InvocationHandler {
   private final Target<?> target;
@@ -73,7 +72,7 @@ public final class ReactiveInvocationHandler implements InvocationHandler {
 
   /**
    * Transforms method invocation into request that executed by
-   * {@link ReactiveHttpClient}.
+   * {@link ReactiveMethodHandler}.
    *
    * @param method invoked method
    * @param args provided arguments to method
@@ -81,10 +80,15 @@ public final class ReactiveInvocationHandler implements InvocationHandler {
    */
   private Publisher invokeRequestMethod(final Method method, final Object[] args) {
     try {
-      return (Publisher) dispatch.get(method).invoke(args);
+      MethodHandler methodHandler = dispatch.get(method);
+      if (ReactiveMethodHandler.class.isAssignableFrom(methodHandler.getClass())) {
+        return ((ReactiveMethodHandler) methodHandler).invoke(args);
+      } else {
+        throw new IllegalArgumentException(String.format(
+            "ReactiveMethodHandler Expected, found %s", methodHandler.getClass().getSimpleName()));
+      }
     } catch (Throwable throwable) {
-      return method.getReturnType() == Mono.class ? Mono.error(throwable)
-          : Flux.error(throwable);
+      return s -> s.onError(throwable);
     }
   }
 

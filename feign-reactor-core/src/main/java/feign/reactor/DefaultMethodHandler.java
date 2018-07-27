@@ -20,7 +20,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
- * Handles default methods by directly invoking the default method code on the interface. The bindTo
+ * Handles default methods by directly invoking the default method codec on the interface. The bindTo
  * method must be called on the result before invoke is called.
  */
 final class DefaultMethodHandler implements MethodHandler {

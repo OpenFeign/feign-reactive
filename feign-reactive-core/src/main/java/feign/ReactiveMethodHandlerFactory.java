@@ -11,14 +11,12 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package feign.reactor.utils;
+package feign;
 
-public class Pair<L, R> {
-  public final L left;
-  public final R right;
+public interface ReactiveMethodHandlerFactory {
 
-  public Pair(L left, R right) {
-    this.left = left;
-    this.right = right;
-  }
+  ReactiveMethodHandler create(final Target target,
+      final MethodMetadata metadata,
+      final ReactiveClient<?> client,
+      final Request.Options options);
 }
