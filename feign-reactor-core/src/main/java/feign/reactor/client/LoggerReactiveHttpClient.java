@@ -14,9 +14,9 @@
 package feign.reactor.client;
 
 import feign.MethodMetadata;
+import feign.reactor.utils.Pair;
 import org.reactivestreams.Publisher;
 import org.slf4j.LoggerFactory;
-import feign.reactor.utils.Pair;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import java.util.concurrent.atomic.AtomicLong;
@@ -106,11 +106,11 @@ public class LoggerReactiveHttpClient<T> implements ReactiveHttpClient<T> {
 
   private void logResponseBodyAndTime(String feignMethodTag, Object response, long elapsedTime) {
     if (logger.isTraceEnabled()) {
-      logger.debug("[{}]<---{}", feignMethodTag, response);
+      logger.trace("[{}] RESPONSE BODY\n{}", feignMethodTag, response);
     }
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}]<--- takes {} milliseconds", feignMethodTag, elapsedTime);
+      logger.debug("[{}]<--- body takes {} milliseconds", feignMethodTag, elapsedTime);
     }
   }
 
