@@ -18,18 +18,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.openfeign</groupId>
-    <artifactId>feign-reactive</artifactId>
+    <artifactId>feign-reactor</artifactId>
     <version>0.1.0</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>feign-reactive-core</module>
-        <module>feign-reactive-fake-impl</module>
+        <module>feign-reactor-core</module>
+        <module>feign-reactor-fake-impl</module>
     </modules>
 
     <name>Feign Reactive</name>
     <url>https://github.com/OpenFeign/feign-reactive</url>
-  <inceptionYear>2018</inceptionYear>
+    <inceptionYear>2018</inceptionYear>
 
     <organization>
         <name>OpenFeign</name>
@@ -42,10 +42,10 @@
     </issueManagement>
 
     <!--<scm>-->
-        <!--<url>https://github.com/kptfh/feign-reactive</url>-->
-        <!--<connection>scm:git:https://github.com/kptfh/feign-reactive.git</connection>-->
-        <!--<developerConnection>scm:git:https://github.com/kptfh/feign-reactive.git</developerConnection>-->
-        <!--<tag>feign-reactive-0.4.0</tag>-->
+    <!--<url>https://github.com/kptfh/feign-reactive</url>-->
+    <!--<connection>scm:git:https://github.com/kptfh/feign-reactive.git</connection>-->
+    <!--<developerConnection>scm:git:https://github.com/kptfh/feign-reactive.git</developerConnection>-->
+    <!--<tag>feign-reactive-0.4.0</tag>-->
     <!--</scm>-->
 
     <licenses>
@@ -71,7 +71,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <main.basedir>${project.basedir}</main.basedir>
+        <main.basedir>${project.basedir}</main.basedir>
 
         <reactor.version>3.1.8.RELEASE</reactor.version>
         <feign.version>9.5.1</feign.version>
@@ -102,7 +102,7 @@
         <dependencies>
             <dependency>
                 <groupId>io.github.openfeign</groupId>
-                <artifactId>feign-reactive-core</artifactId>
+                <artifactId>feign-reactor-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -128,7 +128,7 @@
 
             <dependency>
                 <groupId>io.github.openfeign</groupId>
-                <artifactId>feign-reactive-core</artifactId>
+                <artifactId>feign-reactor-core</artifactId>
                 <type>test-jar</type>
                 <version>${project.version}</version>
                 <scope>test</scope>
@@ -268,97 +268,63 @@
         </pluginManagement>
 
         <plugins>
-      <plugin>
-        <groupId>com.mycila</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <version>3.0</version>
-        <configuration>
-          <!-- session.executionRootDirectory resolves properly even with nested modules -->
-          <header>${main.basedir}/src/etc/header.txt</header>
-          <excludes>
-            <exclude>.travis.yml</exclude>
-            <exclude>.editorconfig</exclude>
-            <exclude>.gitattributes</exclude>
-            <exclude>.gitignore</exclude>
-            <exclude>.mvn/**</exclude>
-            <exclude>mvnw*</exclude>
-            <exclude>etc/header.txt</exclude>
-            <exclude>**/.idea/**</exclude>
-            <exclude>LICENSE</exclude>
-            <exclude>**/*.md</exclude>
-            <exclude>bnd.bnd</exclude>
-            <exclude>src/test/resources/**</exclude>
-            <exclude>src/main/resources/**</exclude>
-          </excludes>
-          <strictCheck>true</strictCheck>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>com.mycila</groupId>
-            <artifactId>license-maven-plugin-git</artifactId>
-            <version>3.0</version>
-          </dependency>
-        </dependencies>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <phase>compile</phase>
-          </execution>
-        </executions>
-      </plugin>
             <plugin>
-        <groupId>com.marvinformatics.formatter</groupId>
-        <artifactId>formatter-maven-plugin</artifactId>
-        <version>2.2.0</version>
-        <configuration>
-          <lineEnding>LF</lineEnding>
-          <configFile>${main.basedir}/src/config/eclipse-java-style.xml</configFile>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>format</goal>
-            </goals>
-            <phase>verify</phase>
-          </execution>
-        </executions>
-      </plugin>
-            <!-- Jacoco Code Coverage -->
-            <!--<plugin>-->
-                <!--<groupId>org.jacoco</groupId>-->
-                <!--<artifactId>jacoco-maven-plugin</artifactId>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<id>prepare-agent</id>-->
-                        <!--<goals>-->
-                            <!--<goal>prepare-agent</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
-                    <!--<execution>-->
-                        <!--<id>report</id>-->
-                        <!--<phase>prepare-package</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>report</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
-                    <!--<execution>-->
-                        <!--<id>post-unit-test</id>-->
-                        <!--<phase>test</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>report</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--&lt;!&ndash; Sets the path to the file which contains the execution data. &ndash;&gt;-->
-
-                            <!--<dataFile>target/jacoco.exec</dataFile>-->
-                            <!--&lt;!&ndash; Sets the output directory for the code coverage report. &ndash;&gt;-->
-                            <!--<outputDirectory>target/jacoco-ut</outputDirectory>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <!-- session.executionRootDirectory resolves properly even with nested modules -->
+                    <header>${main.basedir}/src/etc/header.txt</header>
+                    <excludes>
+                        <exclude>.travis.yml</exclude>
+                        <exclude>.editorconfig</exclude>
+                        <exclude>.gitattributes</exclude>
+                        <exclude>.gitignore</exclude>
+                        <exclude>.mvn/**</exclude>
+                        <exclude>mvnw*</exclude>
+                        <exclude>etc/header.txt</exclude>
+                        <exclude>**/.idea/**</exclude>
+                        <exclude>LICENSE</exclude>
+                        <exclude>**/*.md</exclude>
+                        <exclude>bnd.bnd</exclude>
+                        <exclude>src/test/resources/**</exclude>
+                        <exclude>src/main/resources/**</exclude>
+                    </excludes>
+                    <strictCheck>true</strictCheck>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.mycila</groupId>
+                        <artifactId>license-maven-plugin-git</artifactId>
+                        <version>3.0</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.marvinformatics.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>2.2.0</version>
+                <configuration>
+                    <lineEnding>LF</lineEnding>
+                    <configFile>${main.basedir}/src/config/eclipse-java-style.xml</configFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.4.1</version>
@@ -373,30 +339,13 @@
 
     <!-- Push binary to JCenter -->
     <!--<distributionManagement>-->
-        <!--<repository>-->
-            <!--<id>bintray-kptfh-feign-reactive</id>-->
-            <!--<name>kptfh-feign-reactive</name>-->
-            <!--<url>https://api.bintray.com/maven/kptfh/feign-reactive/client/;publish=1</url>-->
-        <!--</repository>-->
+    <!--<repository>-->
+    <!--<id>bintray-kptfh-feign-reactive</id>-->
+    <!--<name>kptfh-feign-reactive</name>-->
+    <!--<url>https://api.bintray.com/maven/kptfh/feign-reactive/client/;publish=1</url>-->
+    <!--</repository>-->
     <!--</distributionManagement>-->
 
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>versions-maven-plugin</artifactId>
-                <version>${versions-maven-plugin.version}</version>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>dependency-updates-report</report>
-                            <report>plugin-updates-report</report>
-                            <report>property-updates-report</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-        </plugins>
-    </reporting>
+
 
 </project>

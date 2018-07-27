@@ -1,2 +1,2 @@
-# feign-reactive
-Reactive Streams Specification compatibile implementation of Feign 
+# feign-reactor
+Reactive Streams Specification compatible implementation of Feign 
