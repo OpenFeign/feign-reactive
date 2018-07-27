@@ -72,8 +72,7 @@ public final class ReactiveInvocationHandler implements InvocationHandler {
   }
 
   /**
-   * Transforms method invocation into request that executed by
-   * {@link ReactiveHttpClient}.
+   * Transforms method invocation into request that executed by {@link ReactiveHttpClient}.
    *
    * @param method invoked method
    * @param args provided arguments to method
