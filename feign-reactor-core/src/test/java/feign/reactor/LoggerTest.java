@@ -33,10 +33,12 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import reactor.core.publisher.Mono;
 import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -74,9 +76,14 @@ abstract public class LoggerTest {
         .target(IcecreamServiceApi.class,
             "http://localhost:" + wireMockRule.port());
 
-    client.makeOrder(order).block();
+    Mono<Bill> billMono = client.makeOrder(order);
 
+    // no logs before subscription
     ArgumentCaptor<LogEvent> argumentCaptor = ArgumentCaptor.forClass(LogEvent.class);
+    Mockito.verify(appender, never()).append(argumentCaptor.capture());
+
+    billMono.block();
+
     Mockito.verify(appender, times(7)).append(argumentCaptor.capture());
 
     List<LogEvent> logEvents = argumentCaptor.getAllValues();
