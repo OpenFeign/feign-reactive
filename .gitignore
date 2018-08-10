@@ -19,6 +19,7 @@
 *.rar
 *.tar
 *.zip
+!.mvn/wrapper/*.jar
 
 # Logs and databases #
 ######################
