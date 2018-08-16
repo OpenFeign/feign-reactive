@@ -38,14 +38,16 @@
     <dependencies>
 
         <dependency>
-            <groupId>io.github.openfeign</groupId>
+            <groupId>io.github.openfeign.incubating</groupId>
             <artifactId>feign-reactor-core</artifactId>
+            <version>0.1.0</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>io.github.openfeign</groupId>
+            <groupId>io.github.openfeign.incubating</groupId>
             <artifactId>feign-reactor-core</artifactId>
+            <version>0.1.0</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
