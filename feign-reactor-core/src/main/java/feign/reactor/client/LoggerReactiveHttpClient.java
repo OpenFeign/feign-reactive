@@ -19,12 +19,13 @@ import org.reactivestreams.Publisher;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
 import static feign.reactor.utils.FeignUtils.methodTag;
-import static feign.reactor.utils.ReactiveUtils.onNext;
 import static reactor.core.publisher.Mono.just;
 
 /**
@@ -60,16 +61,17 @@ public class LoggerReactiveHttpClient<T> implements ReactiveHttpClient<T> {
           return just(request);
         })
         .flatMap(req -> {
-          logRequest(methodTag, req);
+          req = logRequest(methodTag, req);
 
-          return reactiveClient.executeRequest(request)
+          return reactiveClient.executeRequest(req)
               .doOnNext(resp -> logResponseHeaders(methodTag, resp,
                   System.currentTimeMillis() - start.get()));
         })
         .map(resp -> new LoggerReactiveHttpResponse(resp, start));
   }
 
-  private void logRequest(String feignMethodTag, ReactiveHttpRequest request) {
+  private ReactiveHttpRequest logRequest(
+          String feignMethodTag, ReactiveHttpRequest request) {
     if (logger.isDebugEnabled()) {
       logger.debug("[{}]--->{} {} HTTP/1.1", feignMethodTag, request.method(),
           request.uri());
@@ -82,9 +84,22 @@ public class LoggerReactiveHttpClient<T> implements ReactiveHttpClient<T> {
                   entry.getValue()))
               .collect(Collectors.joining("\n"))));
 
-      request.body().subscribe(onNext(
-          body -> logger.trace("[{}] REQUEST BODY\n{}", feignMethodTag, body)));
+      if(request.body() != null) {
+        Publisher<Object> bodyLogged;
+        if (request.body() instanceof Mono) {
+          bodyLogged = ((Mono<Object>) request.body()).doOnNext(body -> logger.trace(
+                  "[{}] REQUEST BODY\n{}", feignMethodTag, body));
+        } else if (request.body() instanceof Flux) {
+          bodyLogged = ((Flux<Object>) request.body()).doOnNext(body -> logger.trace(
+                  "[{}] REQUEST BODY ELEMENT\n{}", feignMethodTag, body));
+        } else {
+          throw new IllegalArgumentException("Unsupported publisher type: " + request.body().getClass());
+        }
+        return new ReactiveHttpRequest(request, bodyLogged);
+      }
     }
+
+    return request;
   }
 
   private void logResponseHeaders(String feignMethodTag,

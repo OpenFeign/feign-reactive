@@ -16,15 +16,16 @@ package feign.reactor;
 import feign.*;
 import feign.InvocationHandlerFactory.MethodHandler;
 import feign.codec.ErrorDecoder;
-import org.reactivestreams.Publisher;
 import feign.reactor.client.ReactiveClientFactory;
 import feign.reactor.client.ReactiveHttpClient;
 import feign.reactor.client.ReactiveHttpRequestInterceptor;
 import feign.reactor.client.ReactiveHttpResponse;
 import feign.reactor.client.statushandler.ReactiveStatusHandler;
 import feign.reactor.client.statushandler.ReactiveStatusHandlers;
+import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
 import static feign.Util.checkNotNull;
 import static feign.Util.isDefault;
 import static feign.reactor.client.InterceptorReactiveHttpClient.intercept;
@@ -110,7 +112,7 @@ public class ReactiveFeign {
     protected boolean decode404 = false;
     protected Target<T> target;
 
-    private Function<Flux<Throwable>, Publisher<Throwable>> retryFunction;
+    private Function<Flux<Throwable>, Flux<Throwable>> retryFunction;
 
     public Builder(Function<MethodMetadata, ReactiveHttpClient<T>> clientFactory) {
       checkNotNull(clientFactory,
@@ -169,7 +171,7 @@ public class ReactiveFeign {
     }
 
     public Builder<T> retryWhen(
-                                Function<Flux<Throwable>, Publisher<Throwable>> retryFunction) {
+                                Function<Flux<Throwable>, Flux<Throwable>> retryFunction) {
       this.retryFunction = retryFunction;
       return this;
     }

@@ -43,6 +43,10 @@ public final class ReactiveHttpRequest {
     this.body = body; // nullable
   }
 
+  public ReactiveHttpRequest(ReactiveHttpRequest request, Publisher<Object> body){
+     this(request.method, request.uri, request.headers, body);
+  }
+
   /* Method to invoke on the server. */
   public String method() {
     return method;

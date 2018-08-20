@@ -13,11 +13,11 @@
  */
 package feign.reactor;
 
-import org.reactivestreams.Publisher;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuples;
+
 import java.time.Duration;
 import java.util.function.Function;
 
@@ -29,7 +29,7 @@ public interface ReactiveRetryPolicy {
    */
   long retryDelay(Throwable error, int attemptNo);
 
-  default Function<Flux<Throwable>, Publisher<Throwable>> toRetryFunction() {
+  default Function<Flux<Throwable>, Flux<Throwable>> toRetryFunction() {
     return errors -> errors
         .zipWith(Flux.range(1, Integer.MAX_VALUE), (error, index) -> {
           long delay = retryDelay(error, index);
