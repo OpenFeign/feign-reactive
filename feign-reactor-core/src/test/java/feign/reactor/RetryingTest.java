@@ -155,10 +155,9 @@ public abstract class RetryingTest {
         .target(IcecreamServiceApi.class, "http://localhost:" + wireMockRule.port());
 
     StepVerifier.create(client.findOrder(1))
-        .expectErrorMatches(throwable -> throwable instanceof RuntimeException
-            && allOf(isA(RetryReactiveHttpClient.OutOfRetriesException.class),
-                hasProperty("cause", isA(RetryableException.class)))
-                    .matches(throwable.getCause()));
+        .expectErrorMatches(throwable -> throwable instanceof RetryReactiveHttpClient.OutOfRetriesException
+            && hasProperty("cause", isA(RetryableException.class)).matches(throwable))
+        .verify();
   }
 
   @Test
@@ -175,10 +174,9 @@ public abstract class RetryingTest {
         .target(IcecreamServiceApi.class, "http://localhost:" + wireMockRule.port());
 
     StepVerifier.create(client.findOrder(1))
-        .expectErrorMatches(throwable -> throwable instanceof RuntimeException
-            && allOf(isA(RetryReactiveHttpClient.OutOfRetriesException.class),
-                hasProperty("cause", isA(RetryableException.class)))
-                    .matches(throwable.getCause()));
+        .expectErrorMatches(throwable -> throwable instanceof RetryReactiveHttpClient.OutOfRetriesException
+                && hasProperty("cause", isA(RetryableException.class)).matches(throwable))
+        .verify();
   }
 
 }

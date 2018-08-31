@@ -80,10 +80,12 @@ public abstract class StatusHandlerTest {
         .target(IcecreamServiceApi.class, "http://localhost:" + wireMockRule.port());
 
     StepVerifier.create(client.findFirstOrder())
-        .expectError(RetryableException.class);
+        .expectError(RetryableException.class)
+        .verify();
 
     StepVerifier.create(client.findOrder(2))
-        .expectError(RuntimeException.class);
+        .expectError(RuntimeException.class)
+        .verify();
 
   }
 }

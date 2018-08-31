@@ -19,6 +19,7 @@ import feign.MethodMetadata;
 import feign.reactor.client.ReactiveHttpClient;
 import feign.reactor.client.ReactiveHttpRequest;
 import feign.reactor.client.ReactiveHttpResponse;
+import feign.reactor.client.ReadTimeoutException;
 import org.reactivestreams.Publisher;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -27,14 +28,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Map;
+
 import static feign.Util.resolveLastTypeParameter;
 import static org.springframework.core.ParameterizedTypeReference.forType;
 
@@ -45,7 +50,7 @@ public class RestTemplateFakeReactiveHttpClient<T> implements ReactiveHttpClient
   private final Type returnPublisherType;
   private final ParameterizedTypeReference returnActualType;
 
-  public RestTemplateFakeReactiveHttpClient(MethodMetadata methodMetadata,
+  RestTemplateFakeReactiveHttpClient(MethodMetadata methodMetadata,
       RestTemplate restTemplate,
       boolean acceptGzip) {
     this.restTemplate = restTemplate;
@@ -68,20 +73,40 @@ public class RestTemplateFakeReactiveHttpClient<T> implements ReactiveHttpClient
   @Override
   public Mono<ReactiveHttpResponse<T>> executeRequest(ReactiveHttpRequest request) {
 
-    Object body;
+    Mono<Object> bodyMono;
     if (request.body() instanceof Mono) {
-      body = ((Mono) request.body()).block();
+      bodyMono = ((Mono<Object>) request.body());
     } else if (request.body() instanceof Flux) {
-      body = ((Flux<Object>) request.body()).collectList().block();
+      bodyMono = ((Flux) request.body()).collectList();
     } else {
-      body = request.body();
+      bodyMono = Mono.just(request.body());
     }
+    bodyMono = bodyMono.switchIfEmpty(Mono.just(new byte[0]));
 
-    ParameterizedTypeReference responseType;
+    return bodyMono.<ReactiveHttpResponse<T>>flatMap(body -> {
+      MultiValueMap<String, String> headers = new LinkedMultiValueMap<>(request.headers());
+      if (acceptGzip) {
+        headers.add("Accept-Encoding", "gzip");
+      }
+
+      ResponseEntity<T> response =
+              restTemplate.exchange(request.uri().toString(), HttpMethod.valueOf(request.method()),
+                      new HttpEntity(body, headers), responseType());
+
+      return Mono.just(new FakeReactiveHttpResponse<T>(response, returnPublisherType));
+    })
+            .onErrorMap(ex -> ex instanceof ResourceAccessException
+                                && ex.getCause() instanceof SocketTimeoutException,
+                    ReadTimeoutException::new)
+            .onErrorResume(HttpStatusCodeException.class,
+                    ex -> Mono.just(new ErrorReactiveHttpResponse<T>(ex)));
+  }
+
+  private ParameterizedTypeReference responseType(){
     if (returnPublisherType == Mono.class) {
-      responseType = returnActualType;
+      return returnActualType;
     } else {
-      responseType = forType(new ParameterizedType() {
+      return forType(new ParameterizedType() {
         @Override
         public Type[] getActualTypeArguments() {
           return new Type[] {returnActualType.getType()};
@@ -98,66 +123,69 @@ public class RestTemplateFakeReactiveHttpClient<T> implements ReactiveHttpClient
         }
       });
     }
+  }
 
-    try {
+  private static class FakeReactiveHttpResponse<T> implements ReactiveHttpResponse<T>{
 
-      MultiValueMap<String, String> headers = new LinkedMultiValueMap<>(request.headers());
-      if (acceptGzip) {
-        headers.add("Accept-Encoding", "gzip");
-      }
+    private final ResponseEntity<T> response;
+    private final Type returnPublisherType;
 
-      ResponseEntity<T> response =
-          restTemplate.exchange(request.uri().toString(), HttpMethod.valueOf(request.method()),
-              new HttpEntity(body, headers), responseType);
-
-      return Mono.just(new ReactiveHttpResponse<T>() {
-        @Override
-        public int status() {
-          return response.getStatusCodeValue();
-        }
-
-        @Override
-        public Map<String, List<String>> headers() {
-          return response.getHeaders();
-        }
-
-        @Override
-        public Publisher<T> body() {
-          if (returnPublisherType == Mono.class) {
-            return Mono.just(response.getBody());
-          } else {
-            return Flux.fromIterable((List<T>) response.getBody());
-          }
-        }
-
-        @Override
-        public Mono<byte[]> bodyData() {
-          return Mono.just(new byte[0]);
-        }
-      });
-    } catch (HttpClientErrorException ex) {
-      return Mono.just(new ReactiveHttpResponse<T>() {
-        @Override
-        public int status() {
-          return ex.getStatusCode().value();
-        }
-
-        @Override
-        public Map<String, List<String>> headers() {
-          return ex.getResponseHeaders();
-        }
-
-        @Override
-        public Publisher<T> body() {
-          throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Mono<byte[]> bodyData() {
-          return Mono.just(ex.getResponseBodyAsByteArray());
-        }
-      });
+    private FakeReactiveHttpResponse(ResponseEntity<T> response, Type returnPublisherType) {
+      this.response = response;
+      this.returnPublisherType = returnPublisherType;
     }
 
+    @Override
+    public int status() {
+      return response.getStatusCodeValue();
+    }
+
+    @Override
+    public Map<String, List<String>> headers() {
+      return response.getHeaders();
+    }
+
+    @Override
+    public Publisher<T> body() {
+      if (returnPublisherType == Mono.class) {
+        return Mono.just(response.getBody());
+      } else {
+        return Flux.fromIterable((List<T>) response.getBody());
+      }
+    }
+
+    @Override
+    public Mono<byte[]> bodyData() {
+      return Mono.just(new byte[0]);
+    }
+  }
+
+  private static class ErrorReactiveHttpResponse<T> implements ReactiveHttpResponse<T>{
+
+    private final HttpStatusCodeException ex;
+
+    private ErrorReactiveHttpResponse(HttpStatusCodeException ex) {
+      this.ex = ex;
+    }
+
+    @Override
+    public int status() {
+      return ex.getStatusCode().value();
+    }
+
+    @Override
+    public Map<String, List<String>> headers() {
+      return ex.getResponseHeaders();
+    }
+
+    @Override
+    public Publisher<T> body() {
+      return Mono.empty();
+    }
+
+    @Override
+    public Mono<byte[]> bodyData() {
+      return Mono.just(ex.getResponseBodyAsByteArray());
+    }
   }
 }

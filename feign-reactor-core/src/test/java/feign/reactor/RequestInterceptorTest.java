@@ -64,7 +64,8 @@ abstract public class RequestInterceptorTest {
         .target(IcecreamServiceApi.class, "http://localhost:" + wireMockRule.port());
 
     StepVerifier.create(clientWithoutAuth.findFirstOrder())
-        .expectError(FeignException.class);
+        .expectError(FeignException.class)
+        .verify();
 
     IcecreamServiceApi clientWithAuth = builder()
         .requestInterceptor(request -> {

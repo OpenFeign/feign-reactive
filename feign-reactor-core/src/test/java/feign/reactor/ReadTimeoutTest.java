@@ -51,6 +51,7 @@ abstract public class ReadTimeoutTest {
                     "http://localhost:" + wireMockRule.port());
 
     StepVerifier.create(client.findOrder(1))
-        .expectError(ReadTimeoutException.class);
+        .expectError(ReadTimeoutException.class)
+        .verify();
   }
 }
