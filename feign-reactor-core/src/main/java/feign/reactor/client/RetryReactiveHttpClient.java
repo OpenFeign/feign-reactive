@@ -29,23 +29,23 @@ import static feign.reactor.utils.FeignUtils.methodTag;
  *
  * @author Sergii Karpenko
  */
-public class RetryReactiveHttpClient<T> implements ReactiveHttpClient<T> {
+public class RetryReactiveHttpClient<T> implements ReactiveHttpClient {
 
   private static final org.slf4j.Logger logger = LoggerFactory
       .getLogger(RetryReactiveHttpClient.class);
 
   private final String feignMethodTag;
-  private final ReactiveHttpClient<T> reactiveClient;
+  private final ReactiveHttpClient reactiveClient;
   private final Function<Flux<Throwable>, Flux<?>> retryFunction;
 
-  public static <T> ReactiveHttpClient<T> retry(
-                                                ReactiveHttpClient<T> reactiveClient,
+  public static <T> ReactiveHttpClient retry(
+                                                ReactiveHttpClient reactiveClient,
                                                 MethodMetadata methodMetadata,
                                                 Function<Flux<Throwable>, Flux<Throwable>> retryFunction) {
     return new RetryReactiveHttpClient<>(reactiveClient, methodMetadata, retryFunction);
   }
 
-  private RetryReactiveHttpClient(ReactiveHttpClient<T> reactiveClient,
+  private RetryReactiveHttpClient(ReactiveHttpClient reactiveClient,
       MethodMetadata methodMetadata,
       Function<Flux<Throwable>, Flux<Throwable>> retryFunction) {
     this.reactiveClient = reactiveClient;
@@ -54,17 +54,17 @@ public class RetryReactiveHttpClient<T> implements ReactiveHttpClient<T> {
   }
 
   @Override
-  public Publisher<T> executeRequest(ReactiveHttpRequest request, Type returnPublisherType) {
-    Publisher<T> response = reactiveClient.executeRequest(request, returnPublisherType);
+  public Publisher<Object> executeRequest(ReactiveHttpRequest request, Type returnPublisherType) {
+    Publisher<Object> response = reactiveClient.executeRequest(request, returnPublisherType);
     if (returnPublisherType == Mono.class) {
-      return ((Mono<T>) response).retryWhen(retryFunction).onErrorMap(outOfRetries());
+      return ((Mono<Object>) response).retryWhen(retryFunction).onErrorMap(outOfRetries());
     } else {
-      return ((Flux<T>) response).retryWhen(retryFunction).onErrorMap(outOfRetries());
+      return ((Flux<Object>) response).retryWhen(retryFunction).onErrorMap(outOfRetries());
     }
   }
 
   @Override
-  public Mono<ReactiveHttpResponse<T>> executeRequest(ReactiveHttpRequest request) {
+  public Mono<ReactiveHttpResponse> executeRequest(ReactiveHttpRequest request) {
     return reactiveClient.executeRequest(request);
   }
 

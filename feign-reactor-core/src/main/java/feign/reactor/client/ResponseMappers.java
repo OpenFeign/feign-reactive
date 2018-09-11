@@ -26,8 +26,8 @@ import java.util.function.BiFunction;
  */
 public class ResponseMappers {
 
-  public static <T> BiFunction<MethodMetadata, ReactiveHttpResponse<T>, ReactiveHttpResponse<T>> ignore404() {
-    return (MethodMetadata methodMetadata, ReactiveHttpResponse<T> response) -> {
+  public static <T> BiFunction<MethodMetadata, ReactiveHttpResponse, ReactiveHttpResponse> ignore404() {
+    return (MethodMetadata methodMetadata, ReactiveHttpResponse response) -> {
       if (response.status() == HttpStatus.SC_NOT_FOUND) {
         return new DelegatingReactiveHttpResponse<T>(response) {
           @Override
@@ -36,7 +36,7 @@ public class ResponseMappers {
           }
 
           @Override
-          public Publisher<T> body() {
+          public Publisher body() {
             return Mono.empty();
           }
         };
@@ -45,10 +45,10 @@ public class ResponseMappers {
     };
   }
 
-  public static <T> ReactiveHttpClient<T> mapResponse(
-                                                      ReactiveHttpClient<T> reactiveHttpClient,
-                                                      MethodMetadata methodMetadata,
-                                                      BiFunction<MethodMetadata, ReactiveHttpResponse<T>, ReactiveHttpResponse<T>> responseMapper) {
+  public static ReactiveHttpClient mapResponse(
+          ReactiveHttpClient reactiveHttpClient,
+          MethodMetadata methodMetadata,
+          BiFunction<MethodMetadata, ReactiveHttpResponse, ReactiveHttpResponse> responseMapper) {
     return request -> reactiveHttpClient.executeRequest(request)
         .map(response -> responseMapper.apply(methodMetadata, response));
   }

@@ -63,9 +63,8 @@ public class ReactiveFeign {
     this.factory = factory;
   }
 
-  public static <T> Builder<T> builder(
-                                       Function<MethodMetadata, ReactiveHttpClient<T>> clientFactory) {
-    return new Builder<>(clientFactory);
+  public static <T> Builder<T> builder() {
+    return new Builder<>();
   }
 
   @SuppressWarnings("unchecked")
@@ -102,9 +101,9 @@ public class ReactiveFeign {
    */
   public static class Builder<T> {
     protected Contract contract = new ReactiveDelegatingContract(new Contract.Default());
-    protected final Function<MethodMetadata, ReactiveHttpClient<T>> clientFactory;
+    protected Function<MethodMetadata, ReactiveHttpClient> clientFactory;
     protected ReactiveHttpRequestInterceptor requestInterceptor;
-    protected BiFunction<MethodMetadata, ReactiveHttpResponse<T>, ReactiveHttpResponse<T>> responseMapper;
+    protected BiFunction<MethodMetadata, ReactiveHttpResponse, ReactiveHttpResponse> responseMapper;
     protected ReactiveStatusHandler statusHandler =
         ReactiveStatusHandlers.defaultFeign(new ErrorDecoder.Default());
     protected InvocationHandlerFactory invocationHandlerFactory =
@@ -114,10 +113,12 @@ public class ReactiveFeign {
 
     private Function<Flux<Throwable>, Flux<Throwable>> retryFunction;
 
-    public Builder(Function<MethodMetadata, ReactiveHttpClient<T>> clientFactory) {
-      checkNotNull(clientFactory,
-          "clientFactory wasn't provided in ReactiveFeign builder");
+    protected Builder(){
+    }
+
+    public Builder<T> clientFactory(Function<MethodMetadata, ReactiveHttpClient> clientFactory) {
       this.clientFactory = clientFactory;
+      return this;
     }
 
     /**
@@ -131,8 +132,7 @@ public class ReactiveFeign {
       return this;
     }
 
-    public Builder<T> requestInterceptor(
-                                         ReactiveHttpRequestInterceptor requestInterceptor) {
+    public Builder<T> requestInterceptor(ReactiveHttpRequestInterceptor requestInterceptor) {
       this.requestInterceptor = requestInterceptor;
       return this;
     }
@@ -165,7 +165,7 @@ public class ReactiveFeign {
      * @param responseMapper
      * @return
      */
-    public Builder<T> responseMapper(BiFunction<MethodMetadata, ReactiveHttpResponse<T>, ReactiveHttpResponse<T>> responseMapper) {
+    public Builder<T> responseMapper(BiFunction<MethodMetadata, ReactiveHttpResponse, ReactiveHttpResponse> responseMapper) {
       this.responseMapper = responseMapper;
       return this;
     }
@@ -203,8 +203,8 @@ public class ReactiveFeign {
     }
 
     protected ReactiveFeign build() {
-      final ParseHandlersByName handlersByName = new ParseHandlersByName(contract,
-          buildReactiveMethodHandlerFactory());
+      final ParseHandlersByName handlersByName = new ParseHandlersByName(
+              contract, buildReactiveMethodHandlerFactory());
       return new ReactiveFeign(handlersByName, invocationHandlerFactory);
     }
 
@@ -215,7 +215,10 @@ public class ReactiveFeign {
     protected ReactiveClientFactory buildReactiveClientFactory() {
       return methodMetadata -> {
 
-        ReactiveHttpClient<T> reactiveClient = clientFactory.apply(methodMetadata);
+        checkNotNull(clientFactory,
+                "clientFactory wasn't provided in ReactiveFeign builder");
+
+        ReactiveHttpClient reactiveClient = clientFactory.apply(methodMetadata);
 
         if (requestInterceptor != null) {
           reactiveClient = intercept(reactiveClient, requestInterceptor);

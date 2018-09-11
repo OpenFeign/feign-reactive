@@ -33,26 +33,25 @@ import static reactor.core.publisher.Mono.just;
  *
  * @author Sergii Karpenko
  */
-public class LoggerReactiveHttpClient<T> implements ReactiveHttpClient<T> {
+public class LoggerReactiveHttpClient implements ReactiveHttpClient {
 
   private final org.slf4j.Logger logger = LoggerFactory.getLogger(LoggerReactiveHttpClient.class);
 
-  private final ReactiveHttpClient<T> reactiveClient;
+  private final ReactiveHttpClient reactiveClient;
   private final String methodTag;
 
-  public static <T> ReactiveHttpClient<T> log(ReactiveHttpClient<T> reactiveClient,
-                                              MethodMetadata methodMetadata) {
-    return new LoggerReactiveHttpClient<>(reactiveClient, methodMetadata);
+  public static ReactiveHttpClient log(ReactiveHttpClient reactiveClient, MethodMetadata methodMetadata) {
+    return new LoggerReactiveHttpClient(reactiveClient, methodMetadata);
   }
 
-  private LoggerReactiveHttpClient(ReactiveHttpClient<T> reactiveClient,
+  private LoggerReactiveHttpClient(ReactiveHttpClient reactiveClient,
       MethodMetadata methodMetadata) {
     this.reactiveClient = reactiveClient;
     this.methodTag = methodTag(methodMetadata);
   }
 
   @Override
-  public Mono<ReactiveHttpResponse<T>> executeRequest(ReactiveHttpRequest request) {
+  public Mono<ReactiveHttpResponse> executeRequest(ReactiveHttpRequest request) {
 
     AtomicLong start = new AtomicLong(-1);
     return Mono
@@ -103,7 +102,7 @@ public class LoggerReactiveHttpClient<T> implements ReactiveHttpClient<T> {
   }
 
   private void logResponseHeaders(String feignMethodTag,
-                                  ReactiveHttpResponse<?> httpResponse,
+                                  ReactiveHttpResponse httpResponse,
                                   long elapsedTime) {
     if (logger.isTraceEnabled()) {
       logger.trace("[{}] RESPONSE HEADERS\n{}", feignMethodTag,
@@ -129,24 +128,23 @@ public class LoggerReactiveHttpClient<T> implements ReactiveHttpClient<T> {
     }
   }
 
-  private class LoggerReactiveHttpResponse extends DelegatingReactiveHttpResponse<T> {
+  private class LoggerReactiveHttpResponse extends DelegatingReactiveHttpResponse {
 
     private final AtomicLong start;
 
-    private LoggerReactiveHttpResponse(ReactiveHttpResponse<T> response, AtomicLong start) {
+    private LoggerReactiveHttpResponse(ReactiveHttpResponse response, AtomicLong start) {
       super(response);
       this.start = start;
     }
 
     @Override
-    public Publisher<T> body() {
-
-      Publisher<T> publisher = getResponse().body();
+    public Publisher<Object> body() {
+      Publisher<Object> publisher = getResponse().body();
 
       if (publisher instanceof Mono) {
-        return ((Mono<T>) publisher).doOnNext(responseBodyLogger(start));
+        return ((Mono<Object>) publisher).doOnNext(responseBodyLogger(start));
       } else {
-        return ((Flux<T>) publisher).doOnNext(responseBodyLogger(start));
+        return ((Flux<Object>) publisher).doOnNext(responseBodyLogger(start));
       }
     }
 
@@ -157,7 +155,7 @@ public class LoggerReactiveHttpClient<T> implements ReactiveHttpClient<T> {
       return publisher.doOnNext(responseBodyLogger(start));
     }
 
-    private <V> Consumer<V> responseBodyLogger(AtomicLong start) {
+    private Consumer<Object> responseBodyLogger(AtomicLong start) {
       return result -> logResponseBodyAndTime(methodTag, result,
           System.currentTimeMillis() - start.get());
     }
@@ -170,7 +168,7 @@ public class LoggerReactiveHttpClient<T> implements ReactiveHttpClient<T> {
   static class MessageSupplier {
     private Supplier<?> supplier;
 
-    public MessageSupplier(Supplier<?> supplier) {
+    MessageSupplier(Supplier<?> supplier) {
       this.supplier = supplier;
     }
 

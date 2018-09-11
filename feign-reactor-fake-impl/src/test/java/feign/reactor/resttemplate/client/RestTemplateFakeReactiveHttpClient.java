@@ -43,12 +43,12 @@ import java.util.Map;
 import static feign.Util.resolveLastTypeParameter;
 import static org.springframework.core.ParameterizedTypeReference.forType;
 
-public class RestTemplateFakeReactiveHttpClient<T> implements ReactiveHttpClient<T> {
+public class RestTemplateFakeReactiveHttpClient implements ReactiveHttpClient {
 
   private final RestTemplate restTemplate;
   private final boolean acceptGzip;
   private final Type returnPublisherType;
-  private final ParameterizedTypeReference returnActualType;
+  private final ParameterizedTypeReference<Object> returnActualType;
 
   RestTemplateFakeReactiveHttpClient(MethodMetadata methodMetadata,
       RestTemplate restTemplate,
@@ -71,7 +71,7 @@ public class RestTemplateFakeReactiveHttpClient<T> implements ReactiveHttpClient
   }
 
   @Override
-  public Mono<ReactiveHttpResponse<T>> executeRequest(ReactiveHttpRequest request) {
+  public Mono<ReactiveHttpResponse> executeRequest(ReactiveHttpRequest request) {
 
     Mono<Object> bodyMono;
     if (request.body() instanceof Mono) {
@@ -83,26 +83,26 @@ public class RestTemplateFakeReactiveHttpClient<T> implements ReactiveHttpClient
     }
     bodyMono = bodyMono.switchIfEmpty(Mono.just(new byte[0]));
 
-    return bodyMono.<ReactiveHttpResponse<T>>flatMap(body -> {
+    return bodyMono.<ReactiveHttpResponse>flatMap(body -> {
       MultiValueMap<String, String> headers = new LinkedMultiValueMap<>(request.headers());
       if (acceptGzip) {
         headers.add("Accept-Encoding", "gzip");
       }
 
-      ResponseEntity<T> response =
+      ResponseEntity response =
               restTemplate.exchange(request.uri().toString(), HttpMethod.valueOf(request.method()),
-                      new HttpEntity(body, headers), responseType());
+                      new HttpEntity<>(body, headers), responseType());
 
-      return Mono.just(new FakeReactiveHttpResponse<T>(response, returnPublisherType));
+      return Mono.just(new FakeReactiveHttpResponse(response, returnPublisherType));
     })
             .onErrorMap(ex -> ex instanceof ResourceAccessException
                                 && ex.getCause() instanceof SocketTimeoutException,
                     ReadTimeoutException::new)
             .onErrorResume(HttpStatusCodeException.class,
-                    ex -> Mono.just(new ErrorReactiveHttpResponse<T>(ex)));
+                    ex -> Mono.just(new ErrorReactiveHttpResponse(ex)));
   }
 
-  private ParameterizedTypeReference responseType(){
+  private ParameterizedTypeReference<Object> responseType(){
     if (returnPublisherType == Mono.class) {
       return returnActualType;
     } else {
@@ -125,12 +125,12 @@ public class RestTemplateFakeReactiveHttpClient<T> implements ReactiveHttpClient
     }
   }
 
-  private static class FakeReactiveHttpResponse<T> implements ReactiveHttpResponse<T>{
+  private static class FakeReactiveHttpResponse implements ReactiveHttpResponse{
 
-    private final ResponseEntity<T> response;
+    private final ResponseEntity response;
     private final Type returnPublisherType;
 
-    private FakeReactiveHttpResponse(ResponseEntity<T> response, Type returnPublisherType) {
+    private FakeReactiveHttpResponse(ResponseEntity response, Type returnPublisherType) {
       this.response = response;
       this.returnPublisherType = returnPublisherType;
     }
@@ -146,11 +146,11 @@ public class RestTemplateFakeReactiveHttpClient<T> implements ReactiveHttpClient
     }
 
     @Override
-    public Publisher<T> body() {
+    public Publisher<Object> body() {
       if (returnPublisherType == Mono.class) {
         return Mono.just(response.getBody());
       } else {
-        return Flux.fromIterable((List<T>) response.getBody());
+        return Flux.fromIterable((List)response.getBody());
       }
     }
 
@@ -160,7 +160,7 @@ public class RestTemplateFakeReactiveHttpClient<T> implements ReactiveHttpClient
     }
   }
 
-  private static class ErrorReactiveHttpResponse<T> implements ReactiveHttpResponse<T>{
+  private static class ErrorReactiveHttpResponse implements ReactiveHttpResponse{
 
     private final HttpStatusCodeException ex;
 
@@ -179,7 +179,7 @@ public class RestTemplateFakeReactiveHttpClient<T> implements ReactiveHttpClient
     }
 
     @Override
-    public Publisher<T> body() {
+    public Publisher<Object> body() {
       return Mono.empty();
     }
 

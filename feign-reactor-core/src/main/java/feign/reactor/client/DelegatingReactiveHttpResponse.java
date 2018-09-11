@@ -20,15 +20,15 @@ import java.util.Map;
 /**
  * @author Sergii Karpenko
  */
-abstract public class DelegatingReactiveHttpResponse<T> implements ReactiveHttpResponse<T> {
+abstract public class DelegatingReactiveHttpResponse<T> implements ReactiveHttpResponse {
 
-  private final ReactiveHttpResponse<T> response;
+  private final ReactiveHttpResponse response;
 
-  protected DelegatingReactiveHttpResponse(ReactiveHttpResponse<T> response) {
+  protected DelegatingReactiveHttpResponse(ReactiveHttpResponse response) {
     this.response = response;
   }
 
-  protected ReactiveHttpResponse<T> getResponse() {
+  protected ReactiveHttpResponse getResponse() {
     return response;
   }
 

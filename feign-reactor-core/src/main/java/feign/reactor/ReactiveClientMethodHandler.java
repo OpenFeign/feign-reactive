@@ -44,7 +44,7 @@ public class ReactiveClientMethodHandler implements ReactiveMethodHandler {
 
   private final Target target;
   private final MethodMetadata methodMetadata;
-  private final ReactiveHttpClient<Object> reactiveClient;
+  private final ReactiveHttpClient reactiveClient;
   private final Function<Map<String, ?>, String> pathExpander;
   private final Map<String, List<Function<Map<String, ?>, String>>> headerExpanders;
   private final Map<String, Collection<String>> queriesAll;

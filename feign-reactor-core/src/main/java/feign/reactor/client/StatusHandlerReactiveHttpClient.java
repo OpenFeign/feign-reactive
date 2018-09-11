@@ -26,21 +26,21 @@ import static feign.reactor.utils.FeignUtils.methodTag;
  * @author Sergii Karpenko
  */
 
-public class StatusHandlerReactiveHttpClient<T> implements ReactiveHttpClient<T> {
+public class StatusHandlerReactiveHttpClient implements ReactiveHttpClient {
 
-  private final ReactiveHttpClient<T> reactiveClient;
+  private final ReactiveHttpClient reactiveClient;
   private final String methodTag;
 
   private final ReactiveStatusHandler statusHandler;
 
-  public static <T> ReactiveHttpClient<T> handleStatus(
-                                                       ReactiveHttpClient<T> reactiveClient,
+  public static ReactiveHttpClient handleStatus(
+                                                       ReactiveHttpClient reactiveClient,
                                                        MethodMetadata methodMetadata,
                                                        ReactiveStatusHandler statusHandler) {
-    return new StatusHandlerReactiveHttpClient<>(reactiveClient, methodMetadata, statusHandler);
+    return new StatusHandlerReactiveHttpClient(reactiveClient, methodMetadata, statusHandler);
   }
 
-  private StatusHandlerReactiveHttpClient(ReactiveHttpClient<T> reactiveClient,
+  private StatusHandlerReactiveHttpClient(ReactiveHttpClient reactiveClient,
       MethodMetadata methodMetadata,
       ReactiveStatusHandler statusHandler) {
     this.reactiveClient = reactiveClient;
@@ -49,7 +49,7 @@ public class StatusHandlerReactiveHttpClient<T> implements ReactiveHttpClient<T>
   }
 
   @Override
-  public Mono<ReactiveHttpResponse<T>> executeRequest(ReactiveHttpRequest request) {
+  public Mono<ReactiveHttpResponse> executeRequest(ReactiveHttpRequest request) {
     return reactiveClient.executeRequest(request).map(response -> {
       if (statusHandler.shouldHandle(response.status())) {
         return new ErrorReactiveHttpResponse(response, statusHandler.decode(methodTag, response));
@@ -59,18 +59,17 @@ public class StatusHandlerReactiveHttpClient<T> implements ReactiveHttpClient<T>
     });
   }
 
-  private class ErrorReactiveHttpResponse extends DelegatingReactiveHttpResponse<T> {
+  private class ErrorReactiveHttpResponse extends DelegatingReactiveHttpResponse {
 
     private final Mono<? extends Throwable> error;
 
-    protected ErrorReactiveHttpResponse(ReactiveHttpResponse<T> response,
-        Mono<? extends Throwable> error) {
+    protected ErrorReactiveHttpResponse(ReactiveHttpResponse response, Mono<? extends Throwable> error) {
       super(response);
       this.error = error;
     }
 
     @Override
-    public Publisher<T> body() {
+    public Publisher<Object> body() {
       if (getResponse().body() instanceof Mono) {
         return error.flatMap(Mono::error);
       } else {

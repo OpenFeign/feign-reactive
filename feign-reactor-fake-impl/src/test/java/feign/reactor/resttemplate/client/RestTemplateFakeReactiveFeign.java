@@ -21,7 +21,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * WebClient based implementation
+ * {@link RestTemplate} based implementation
  *
  * @author Sergii Karpenko
  */
@@ -47,8 +47,8 @@ public class RestTemplateFakeReactiveFeign {
 
   public static <T> ReactiveFeign.Builder<T> builder(RestTemplate restTemplate,
                                                      boolean acceptGzip) {
-    return new ReactiveFeign.Builder<>(
-        methodMetadata -> (ReactiveHttpClient<T>) new RestTemplateFakeReactiveHttpClient<>(
+    return new ReactiveFeign.Builder<T>(){}.clientFactory(
+        methodMetadata -> new RestTemplateFakeReactiveHttpClient(
             methodMetadata, restTemplate, acceptGzip));
   }
 }

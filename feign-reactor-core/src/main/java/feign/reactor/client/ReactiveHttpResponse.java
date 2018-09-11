@@ -23,13 +23,13 @@ import java.util.Map;
  * 
  * @author Sergii Karpenko
  */
-public interface ReactiveHttpResponse<T> {
+public interface ReactiveHttpResponse {
 
   int status();
 
   Map<String, List<String>> headers();
 
-  Publisher<T> body();
+  Publisher<Object> body();
 
   /**
    * used by error decoders

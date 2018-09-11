@@ -18,11 +18,10 @@ package feign.reactor.client;
  *
  * @author Sergii Karpenko
  */
-public class InterceptorReactiveHttpClient<T> {
+public class InterceptorReactiveHttpClient {
 
-  public static <T> ReactiveHttpClient<T> intercept(
-                                                    ReactiveHttpClient<T> reactiveHttpClient,
-                                                    ReactiveHttpRequestInterceptor interceptor) {
+  public static ReactiveHttpClient intercept(ReactiveHttpClient reactiveHttpClient,
+											 ReactiveHttpRequestInterceptor interceptor) {
     return request -> reactiveHttpClient.executeRequest(interceptor.apply(request));
   }
 

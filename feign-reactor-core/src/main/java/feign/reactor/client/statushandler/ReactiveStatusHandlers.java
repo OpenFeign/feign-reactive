@@ -35,21 +35,20 @@ public class ReactiveStatusHandlers {
       }
 
       @Override
-      public Mono<? extends Throwable> decode(String methodTag, ReactiveHttpResponse<?> response) {
+      public Mono<? extends Throwable> decode(String methodTag, ReactiveHttpResponse response) {
         return response.bodyData().map(bodyData -> errorDecoder.decode(methodTag,
             Response.builder().status(response.status())
                 .reason(HttpStatus.getStatusText(response.status()))
                 .headers(response.headers().entrySet()
                     .stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey,
-                        Map.Entry::getValue)))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
                 .body(bodyData).build()));
       }
     };
   }
 
   public static ReactiveStatusHandler throwOnStatus(Predicate<Integer> statusPredicate,
-                                                    BiFunction<String, ReactiveHttpResponse<?>, Throwable> errorFunction) {
+													BiFunction<String, ReactiveHttpResponse, Throwable> errorFunction) {
     return new ReactiveStatusHandler() {
       @Override
       public boolean shouldHandle(int status) {
@@ -57,7 +56,7 @@ public class ReactiveStatusHandlers {
       }
 
       @Override
-      public Mono<? extends Throwable> decode(String methodKey, ReactiveHttpResponse<?> response) {
+      public Mono<? extends Throwable> decode(String methodKey, ReactiveHttpResponse response) {
         return Mono.just(errorFunction.apply(methodKey, response));
       }
     };

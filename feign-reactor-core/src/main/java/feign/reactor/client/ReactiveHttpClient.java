@@ -22,16 +22,16 @@ import java.lang.reflect.Type;
  *
  * @author Sergii Karpenko
  */
-public interface ReactiveHttpClient<T> {
+public interface ReactiveHttpClient {
 
-  Mono<ReactiveHttpResponse<T>> executeRequest(ReactiveHttpRequest request);
+  Mono<ReactiveHttpResponse> executeRequest(ReactiveHttpRequest request);
 
-  default Publisher<T> executeRequest(ReactiveHttpRequest request, Type returnPublisherType) {
-    Mono<ReactiveHttpResponse<T>> response = executeRequest(request);
+  default Publisher<Object> executeRequest(ReactiveHttpRequest request, Type returnPublisherType) {
+    Mono<ReactiveHttpResponse> response = executeRequest(request);
     if (returnPublisherType == Mono.class) {
-      return response.flatMap(resp -> (Mono<T>) resp.body());
+      return response.flatMap(resp -> (Mono<Object>) resp.body());
     } else {
-      return response.flatMapMany(resp -> resp.body());
+      return response.flatMapMany(ReactiveHttpResponse::body);
     }
   }
 }
